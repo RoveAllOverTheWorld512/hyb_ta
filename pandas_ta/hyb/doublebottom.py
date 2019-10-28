@@ -18,34 +18,41 @@ from math import isnan
 from ..utils import verify_series
 
 
+def idxmax(ds, i, l):
+    '''
+    返回pandas.Series指定位置、指定区间内的最大值及索引
+    注意：ds索引号为顺序号，l>0
+    '''
+    if isnan(i):
+        return None
+    if (l <= 0) | ((i - l + 1) < 0) | (i > len(ds)):
+        return None
+    s = ds.iloc[(i - l + 1): i + 1]
+    return s.loc[[s.idxmax()]]
+
+def idxmin(ds, i, l):
+    '''
+    返回pandas.Series指定位置、指定区间内的最小值及索引
+    注意：ds索引号为顺序号，l>0
+    '''
+    if isnan(i):
+        return None
+    if (l <= 0) | ((i - l + 1) < 0) | (i > len(ds)):
+        return None
+#    print(f'i={i}')
+    s = ds.iloc[(i - l + 1): i + 1]
+    return s.loc[[s.idxmin()]]
+
+
 def doublebottom(open, high, low, close, m=None, n=None, **kwargs):
     '''
-    双底形态研究：
+    双底形态研究：研究最长m+n窗口内上涨回调的情况。尽管取名是双底研究，不一定
+    是双底，也可能是上涨趋势中的回调。
+    m:近期高点前查找低点的窗口长度
+    n:近期查找高点的窗口长度
+    in_threshold:涨幅阈值，为正值
+    de_threshold:回调跌幅阈值，为负值
     '''
-    def idxmax(ds, i, l):
-        '''
-        返回pandas.Series指定位置、指定区间内的最大值及索引
-        注意：ds索引号为顺序号，l>0
-        '''
-        if isnan(i):
-            return None
-        if (l <= 0) | ((i - l + 1) < 0) | (i > len(ds)):
-            return None
-        s = ds.iloc[(i - l + 1): i + 1]
-        return s.loc[[s.idxmax()]]
-
-    def idxmin(ds, i, l):
-        '''
-        返回pandas.Series指定位置、指定区间内的最小值及索引
-        注意：ds索引号为顺序号，l>0
-        '''
-        if isnan(i):
-            return None
-        if (l <= 0) | ((i - l + 1) < 0) | (i > len(ds)):
-            return None
-    #    print(f'i={i}')
-        s = ds.iloc[(i - l + 1): i + 1]
-        return s.loc[[s.idxmin()]]
 
     # Validate Arguments
     open = verify_series(open)
@@ -61,8 +68,8 @@ def doublebottom(open, high, low, close, m=None, n=None, **kwargs):
     n = int(n) if n and n > 0 else 34
 
     ds = close  # 应该为pd.Series,索引为pd.DatetimeIndex
-    indexname = ds.index.name
-    name = ds.name
+    indexname = ds.index.name  # 索引名
+    name = ds.name  # 列名
     df1 = ds.reset_index()  # 变成了pd.DataFrame,索引为pd.RangeIndex，原索引变成列date
     ds2 = df1[name]  # 索引为pd.RangeIndex
     try:
@@ -112,5 +119,10 @@ def doublebottom(open, high, low, close, m=None, n=None, **kwargs):
 
 doublebottom.__doc__ = \
     '''
-    双底形态研究：
+    双底形态研究：研究最长m+n窗口内上涨回调的情况。尽管取名是双底研究，不一定
+    是双底，也可能是上涨趋势中的回调。
+    m:近期高点前查找低点的窗口长度
+    n:近期查找高点的窗口长度
+    in_threshold:涨幅阈值，为正值
+    de_threshold:回调跌幅阈值，为负值
     '''

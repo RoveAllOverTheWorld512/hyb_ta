@@ -73,6 +73,7 @@ def badnews(df, date, j=60, k=60, l=30, m=120):
     p1d = df['date'].iloc[p1i].strftime('%Y%m%d')
     p1ds = p1i - i
     p1zf = p1v / p - 1
+    p1zf_max = p1v / p0v - 1  # 从半年多前最高到此低点的跌幅
     if p1i + l > len(ds):  # 后面天数不够
         l = len(ds) - 1 - p1i
     p2 = idxmax(ds, p1i + l, l)
@@ -97,6 +98,6 @@ def badnews(df, date, j=60, k=60, l=30, m=120):
     p3ds = p3i - i
     p3zf = p3v / p - 1
 
-    return [p0d, p0ds, p0v, p0zf, dt, p, p1d, p1ds, p1v, p1zf, p2d, p2ds, p2v, p2zf, p3d, p3ds, p3v, p3zf]
-
+    return [p0d, p0ds, p0v, p0zf, dt, p, p1d, p1ds, p1v, p1zf, p1zf_max,
+            p2d, p2ds, p2v, p2zf, p3d, p3ds, p3v, p3zf]
 

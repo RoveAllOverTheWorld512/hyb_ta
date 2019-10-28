@@ -17,13 +17,14 @@ import pandas_ta as ta
 import pandas as pd
 
 
-def signal(gpdm):
+def signal(gpdm, start, m, n, in_threshold, de_threshold):
     tdxday = Tdxday(gpdm)
-    start = '20190501'
     ohlc = tdxday.get_qfqdata(start=start)
     if ohlc.empty:
         return None
-    ohlc.ta.doublebottom(append=True, m=34, n=21, in_threshold=0.35, de_threshold=-0.2)
+#    ohlc.ta.doublebottom(append=True, m=34, n=21, in_threshold=0.35, de_threshold=-0.2)
+    ohlc.ta.doublebottom(append=True, m=m, n=n,
+                         in_threshold=in_threshold, de_threshold=de_threshold)
     try:
         # 新股由于交易天数少，无法计算，会出现没有返回
         # double_bott的情况
@@ -44,24 +45,28 @@ if __name__ == '__main__':
     gpdmb = tdx.get_gpdm()
 
     sgdf = pd.DataFrame(columns=['date', 'gpdm', 'gpmc'])
-    n = 0
-    m = len(gpdmb)
-
-    for i in range(n, m):
+    k = 0  # 股票代码表起点
+    l = len(gpdmb)   # 股票代码表起点
+    start = '20190101'    # 股票交易数据起始时间
+    m = 34   # 上涨时间窗口长度
+    n = 21   # 回调时间窗口长度
+    in_threshold = 0.35  # 上涨幅度阈值
+    de_threshold = -0.15  # 回调幅度阈值
+    for i in range(k, l):
         row = gpdmb.iloc[i]
         print(i + 1, m, row.dm, row.gpmc)
-        sg = signal(row.dm)
+        sg = signal(row.dm, start, m, n, in_threshold, de_threshold)
         if isinstance(sg, pd.DataFrame):
             sgdf = sgdf.append(sg)
         i += 1
 
+    # 
     sgdf.to_csv('sgdf_db.csv', index=False, encoding='GBK')
     sgdf1 = sgdf.loc[(sgdf.index > '2018-09-01')]
     gpdf = sgdf1[['gpdm', 'gpmc']]
     gpdf = gpdf.drop_duplicates(subset=['gpdm', 'gpmc'])
     gpdf = gpdf.reset_index(drop=True)
-
-    gpdf.to_csv('gpdf_db.csv', index=False, encoding='GBK')
+    gpdf.to_csv('gpdf_db1.csv', index=False, encoding='GBK')
 
     sgdf2 = sgdf.loc[(sgdf.index > '2019-10-20')]
     gpdf1 = sgdf2[['gpdm', 'gpmc']]
