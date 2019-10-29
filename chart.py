@@ -145,6 +145,6 @@ if __name__ == '__main__':
     tdxday = Tdxday(filename)
     stock = tdxday.get_qfqdata(start='20190101')
                 
-    candlestick(stock, fname='tmp.png')
+#    candlestick(stock, fname='tmp.png')
     
 #    close(stock, fname='tmp.png')

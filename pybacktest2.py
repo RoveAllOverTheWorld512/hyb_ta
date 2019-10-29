@@ -49,6 +49,8 @@ if __name__ == '__main__':
 
     filename = '002456'
     tdxday = Tdxday(filename)
+    ohlc = tdxday.get_qfqdata(start='20170101')
+    sys.exit()
     # pybacktest.Backtest通过从python locals()提取交易原始数据
     # pandas DataFrame的名称可以命名为'ohlc', 'bars', 'ohlcv'
     # 数据格式遵循Amibroker的命名约定，date(index)，O(open),H(high),

@@ -90,37 +90,30 @@ def doublebottom(open, high, low, close, m1=None, m=None, n=None, **kwargs):
     df1['max'] = df3[name]  # 前n周期最大值
     df1['idxmax'] = df3['index']  # 最大值对应的索引序号
 
-    ds4 = None
-    idxmax1 = None  # 记录上一个序号
-    for i in range(len(ds2)):
-        idxmax = df1.iloc[i]['idxmax']
-        if not isnan(idxmax):
-            if idxmax != idxmax1:  # 与上个记录序号不同，则重新计算
-                tmp = idxmin(ds2, int(idxmax), m)
-                idxmax1 = idxmax   # 记录当前序号
-        else:
-            tmp = None
-        if tmp is not None:
-            ds4 = pd.concat([ds4, tmp])
-
+    try:
+        ds4 = pd.concat([(idxmin(ds2, int(df1.iloc[i]['idxmax']), m)
+                          if not isnan(df1.iloc[i]['idxmax']) else None)
+                        for i in range(len(ds2))])
+        # n周期内最高点前m周期内的最低点，这里的最高、最低只是知道窗口内的，
+        # 可能在下降趋势或上升趋势的中部某个位置，不是趋势真正的转折位置
+        # 注意isnan(), 这就是numpy.float64数据类型nan，不是None,np.NaN
+    except:
+        return None
     df4 = ds4.reset_index()
     df4.index += (len(ds2)-len(ds4))  # 由于前面有较多行未返回数据
     df1['min'] = df4[name]
     df1['idxmin'] = df4['index']
 
-    ds5 = None
-    idxmax1 = None  # 记录上一个序号
-    for i in range(len(ds2)):
-        idxmax = df1.iloc[i]['idxmax']
-        if not isnan(idxmax):
-            if idxmax != idxmax1:  # 与上个记录序号不同，则重新计算
-                tmp = idxmin(ds2, int(idxmax), m1)
-                idxmax1 = idxmax   # 记录当前序号
-        else:
-            tmp = None
-        if tmp is not None:
-            ds5 = pd.concat([ds5, tmp])
-
+    # 比m的时间跨度更大
+    try:
+        ds5 = pd.concat([(idxmin(ds2, int(df1.iloc[i]['idxmax']), m1)
+                          if not isnan(df1.iloc[i]['idxmax']) else None)
+                        for i in range(len(ds2))])
+        # n周期内最高点前m周期内的最低点，这里的最高、最低只是知道窗口内的，
+        # 可能在下降趋势或上升趋势的中部某个位置，不是趋势真正的转折位置
+        # 注意isnan(), 这就是numpy.float64数据类型nan，不是None,np.NaN
+    except:
+        return None
     df5 = ds5.reset_index()
     df5.index += (len(ds2)-len(ds5))  # 由于前面有较多行未返回数据
     df1['min1'] = df5[name]

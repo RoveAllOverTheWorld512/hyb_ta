@@ -17,33 +17,35 @@ from numpy import NaN as npNaN
 from math import isnan
 import dateutil.parser
 
-def idxmax(ds, i, l):
+
+def idxmax(ds, i, j):
     '''
     返回pandas.Series指定位置、指定区间内的最大值及索引
     注意：ds索引号为顺序号，l>0
     '''
     if isnan(i):
         return None
-    if (l <= 0) | ((i - l + 1) < 0) | (i > len(ds)):
+    if (j <= 0) | ((i - j + 1) < 0) | (i > len(ds)):
         return None
-    s = ds.iloc[(i - l + 1): i + 1]
+    s = ds.iloc[(i - j + 1): i + 1]
     return s.loc[[s.idxmax()]]
 
-def idxmin(ds, i, l):
+
+def idxmin(ds, i, j):
     '''
     返回pandas.Series指定位置、指定区间内的最小值及索引
     注意：ds索引号为顺序号，l>0
     '''
     if isnan(i):
         return None
-    if (l <= 0) | ((i - l + 1) < 0) | (i > len(ds)):
+    if (j <= 0) | ((i - j + 1) < 0) | (i > len(ds)):
         return None
 #    print(f'i={i}')
-    s = ds.iloc[(i - l + 1): i + 1]
+    s = ds.iloc[(i - j + 1): i + 1]
     return s.loc[[s.idxmin()]]
 
 
-def badnews(df, date, j=60, k=60, l=30, m=120):
+def badnews(df, date, j=60, k=60, n=30, m=120):
     '''
     利空走势分析：利空发生日前j个交易日内（含消息日）高点，
     利空发生日后k个交易日内（不含消息日）低点
@@ -74,9 +76,9 @@ def badnews(df, date, j=60, k=60, l=30, m=120):
     p1ds = p1i - i
     p1zf = p1v / p - 1
     p1zf_max = p1v / p0v - 1  # 从半年多前最高到此低点的跌幅
-    if p1i + l > len(ds):  # 后面天数不够
-        l = len(ds) - 1 - p1i
-    p2 = idxmax(ds, p1i + l, l)
+    if p1i + n > len(ds):  # 后面天数不够
+        n = len(ds) - 1 - p1i
+    p2 = idxmax(ds, p1i + n, n)
     if p2 is not None:
         p2i = p2.index[0]
         p2v = p2.loc[p2i]

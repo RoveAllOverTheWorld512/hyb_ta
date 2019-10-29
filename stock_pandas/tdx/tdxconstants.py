@@ -13,6 +13,6 @@ QQ: 592440193
 TDX_PATH = r'd:\new_hxzq_hc'  # 通达信安装文件夹
 TDX_HQ_CACHE = r'd:\new_hxzq_hc\T0002\hq_cache'  # 通达信行情高速缓存文件夹
 TDX_DAY_BASEPATH = r'D:\new_hxzq_hc\vipdoc' # 通达信.day交易数据根文件夹
-#TDX_DAY_PATH = r'D:\new_hxzq_hc\vipdoc\%s\lday' # 通达信.day交易数据文件夹 %s为市场sh、sz
-TDX_DAY_PATH = r'D:\tdx\%slday' # 通达信.day交易数据文件夹 %s为市场sh、sz
+TDX_DAY_PATH = r'D:\new_hxzq_hc\vipdoc\%s\lday' # 通达信.day交易数据文件夹 %s为市场sh、sz
+#TDX_DAY_PATH = r'D:\tdx\%slday' # 通达信.day交易数据文件夹 %s为市场sh、sz
 ADJ_PATH = r'd:\adjf'   # 复权数据文件夹
