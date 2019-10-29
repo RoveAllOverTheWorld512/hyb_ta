@@ -18,37 +18,6 @@ from math import isnan
 from ..utils import verify_series
 
 
-def idxmax(ds, i, j):
-    '''
-    返回pandas.Series指定位置、指定区间内的最大值及索引
-    返回的是pandas.Series，只有一行，当有多个相同最大值时
-    返回的是前面的那个
-    注意：ds索引号为顺序号，l>0
-    '''
-    if isnan(i):
-        return None
-    if (j <= 0) | ((i - j + 1) < 0) | (i > len(ds)):
-        return None
-    s = ds.iloc[(i - j + 1): i + 1]
-    return s.loc[[s.idxmax()]]
-
-
-def idxmin(ds, i, j):
-    '''
-    返回pandas.Series指定位置、指定区间内的最小值及索引
-    返回的是pandas.Series，只有一行，当有多个相同最小值时
-    返回的是前面的那个
-    注意：ds索引号为顺序号，l>0
-    '''
-    if isnan(i):
-        return None
-    if (j <= 0) | ((i - j + 1) < 0) | (i > len(ds)):
-        return None
-#    print(f'i={i}')
-    s = ds.iloc[(i - j + 1): i + 1]
-    return s.loc[[s.idxmin()]]
-
-
 def doublebottom(open, high, low, close, m1=None, m=None, n=None, **kwargs):
     '''
     双底形态研究：研究最长m+n窗口内上涨回调的情况。尽管取名是双底研究，不一定
@@ -59,6 +28,34 @@ def doublebottom(open, high, low, close, m1=None, m=None, n=None, **kwargs):
     in_threshold:涨幅阈值，为正值
     de_threshold:回调跌幅阈值，为负值
     '''
+    def idxmax(ds, i, j):
+        '''
+        返回pandas.Series指定位置、指定区间内的最大值及索引
+        返回的是pandas.Series，只有一行，当有多个相同最大值时
+        返回的是前面的那个
+        注意：ds索引号为顺序号，l>0
+        '''
+        if isnan(i):
+            return None
+        if (j <= 0) | ((i - j + 1) < 0) | (i > len(ds)):
+            return None
+        s = ds.iloc[(i - j + 1): i + 1]
+        return s.loc[[s.idxmax()]]
+
+    def idxmin(ds, i, j):
+        '''
+        返回pandas.Series指定位置、指定区间内的最小值及索引
+        返回的是pandas.Series，只有一行，当有多个相同最小值时
+        返回的是前面的那个
+        注意：ds索引号为顺序号，l>0
+        '''
+        if isnan(i):
+            return None
+        if (j <= 0) | ((i - j + 1) < 0) | (i > len(ds)):
+            return None
+    #    print(f'i={i}')
+        s = ds.iloc[(i - j + 1): i + 1]
+        return s.loc[[s.idxmin()]]
 
     # Validate Arguments
     open = verify_series(open)
@@ -74,6 +71,8 @@ def doublebottom(open, high, low, close, m1=None, m=None, n=None, **kwargs):
     n = int(n) if n and n > 0 else 34
     m1 = int(m1) if m1 and m1 > 0 else 89
 
+#    print(f'm1={m1},m={m},n={n}')
+#    print(f'in_threshold={in_threshold},de_threshold={de_threshold}')
     ds = close  # 应该为pd.Series,索引为pd.DatetimeIndex
     indexname = ds.index.name  # 索引名
     name = ds.name  # 列名
@@ -103,10 +102,14 @@ def doublebottom(open, high, low, close, m1=None, m=None, n=None, **kwargs):
         if tmp is not None:
             ds4 = pd.concat([ds4, tmp])
 
-    df4 = ds4.reset_index()
-    df4.index += (len(ds2)-len(ds4))  # 由于前面有较多行未返回数据
-    df1['min'] = df4[name]
-    df1['idxmin'] = df4['index']
+    if ds4 is None:
+        df1['min'] = npNaN
+        df1['idxmin'] = npNaN
+    else:
+        df4 = ds4.reset_index()
+        df4.index += (len(ds2)-len(ds4))  # 由于前面有较多行未返回数据
+        df1['min'] = df4[name]
+        df1['idxmin'] = df4['index']
 
     ds5 = None
     idxmax1 = None  # 记录上一个序号
@@ -121,10 +124,14 @@ def doublebottom(open, high, low, close, m1=None, m=None, n=None, **kwargs):
         if tmp is not None:
             ds5 = pd.concat([ds5, tmp])
 
-    df5 = ds5.reset_index()
-    df5.index += (len(ds2)-len(ds5))  # 由于前面有较多行未返回数据
-    df1['min1'] = df5[name]
-    df1['idxmin1'] = df5['index']
+    if ds5 is None:
+        df1['min1'] = npNaN
+        df1['idxmin1'] = npNaN
+    else:
+        df5 = ds5.reset_index()
+        df5.index += (len(ds2)-len(ds5))  # 由于前面有较多行未返回数据
+        df1['min1'] = df5[name]
+        df1['idxmin1'] = df5['index']
 
     df1 = df1.assign(n_days=df1.index-df1['idxmax'])  # 当前位置距离高点天数
     df1 = df1.assign(m_days=df1.index-df1['idxmin'])  # 当前位置距离低点天数
@@ -136,13 +143,14 @@ def doublebottom(open, high, low, close, m1=None, m=None, n=None, **kwargs):
                      & (df1['increasing'] > in_threshold)))
     df1 = df1.assign(double_bott1=((df1['decreasing'] < de_threshold)
                      & (df1['increasing'] > in_threshold)
-                     & (df1['increasing'] == df1['increasing1'])))
+                     & (df1['increasing'] <= df1['increasing1']*1.05)))
 
     df1['double_bott'] = df1['double_bott'].astype(int)
     df1['double_bott'] = df1['double_bott'].replace(0, npNaN)
     df1['double_bott1'] = df1['double_bott1'].astype(int)
     df1['double_bott1'] = df1['double_bott1'].replace(0, npNaN)
-
+#    ln = len(df1)
+#    print(f'len(df1)={ln}')
     df = df1.set_index(indexname)
     df = df.drop(columns=name)  # 删除close列
     df = df.rename(columns={'max': f'max_{n}',

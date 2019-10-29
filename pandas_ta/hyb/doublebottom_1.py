@@ -18,37 +18,6 @@ from math import isnan
 from ..utils import verify_series
 
 
-def idxmax(ds, i, j):
-    '''
-    返回pandas.Series指定位置、指定区间内的最大值及索引
-    返回的是pandas.Series，只有一行，当有多个相同最大值时
-    返回的是前面的那个
-    注意：ds索引号为顺序号，l>0
-    '''
-    if isnan(i):
-        return None
-    if (j <= 0) | ((i - j + 1) < 0) | (i > len(ds)):
-        return None
-    s = ds.iloc[(i - j + 1): i + 1]
-    return s.loc[[s.idxmax()]]
-
-
-def idxmin(ds, i, j):
-    '''
-    返回pandas.Series指定位置、指定区间内的最小值及索引
-    返回的是pandas.Series，只有一行，当有多个相同最小值时
-    返回的是前面的那个
-    注意：ds索引号为顺序号，l>0
-    '''
-    if isnan(i):
-        return None
-    if (j <= 0) | ((i - j + 1) < 0) | (i > len(ds)):
-        return None
-#    print(f'i={i}')
-    s = ds.iloc[(i - j + 1): i + 1]
-    return s.loc[[s.idxmin()]]
-
-
 def doublebottom(open, high, low, close, m1=None, m=None, n=None, **kwargs):
     '''
     双底形态研究：研究最长m+n窗口内上涨回调的情况。尽管取名是双底研究，不一定
@@ -58,7 +27,37 @@ def doublebottom(open, high, low, close, m1=None, m=None, n=None, **kwargs):
     n:近期查找高点的窗口长度
     in_threshold:涨幅阈值，为正值
     de_threshold:回调跌幅阈值，为负值
+    由于在core.py是这样导入的from .hyb.doublebottom import doublebottom
+    所以下面的idxmax,idxmin必须在doublebottom内部定义
     '''
+    def idxmax(ds, i, j):
+        '''
+        返回pandas.Series指定位置、指定区间内的最大值及索引
+        返回的是pandas.Series，只有一行，当有多个相同最大值时
+        返回的是前面的那个
+        注意：ds索引号为顺序号，l>0
+        '''
+        if isnan(i):
+            return None
+        if (j <= 0) | ((i - j + 1) < 0) | (i > len(ds)):
+            return None
+        s = ds.iloc[(i - j + 1): i + 1]
+        return s.loc[[s.idxmax()]]
+
+    def idxmin(ds, i, j):
+        '''
+        返回pandas.Series指定位置、指定区间内的最小值及索引
+        返回的是pandas.Series，只有一行，当有多个相同最小值时
+        返回的是前面的那个
+        注意：ds索引号为顺序号，l>0
+        '''
+        if isnan(i):
+            return None
+        if (j <= 0) | ((i - j + 1) < 0) | (i > len(ds)):
+            return None
+    #    print(f'i={i}')
+        s = ds.iloc[(i - j + 1): i + 1]
+        return s.loc[[s.idxmin()]]
 
     # Validate Arguments
     open = verify_series(open)

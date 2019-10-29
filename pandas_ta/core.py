@@ -331,14 +331,14 @@ class AnalysisIndicators(PandasObject):
         return result
 
     def doublebottom(self, open=None, high=None, low=None, close=None,
-                      m=None, n=None, **kwargs):
+                      m1=None, m=None, n=None, **kwargs):
         open = self._get_column(open, 'open')
         high = self._get_column(high, 'high')
         low = self._get_column(low, 'low')
         close = self._get_column(close, 'close')
 
         result = doublebottom(open, high, low, close,
-                               m=None, n=None, **kwargs)
+                               m1=m1, m=m, n=n, **kwargs)
         self._append(result, **kwargs)
         return result
 
