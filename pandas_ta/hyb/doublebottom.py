@@ -18,12 +18,13 @@ from math import isnan
 from ..utils import verify_series
 
 
-def doublebottom(open, high, low, close, m1=None, m=None, n=None, **kwargs):
+def doublebottom(open, high, low, close, m1=None, m=None, n1=None, n=None, **kwargs):
     '''
     双底形态研究：研究最长m+n窗口内上涨回调的情况。尽管取名是双底研究，不一定
     是双底，也可能是上涨趋势中的回调。
-    m1:近期高点前查找低点的窗口长度
+    m1:近期高点前查找低点的窗口长度  m1>m
     m:近期高点前查找低点的窗口长度
+    n1:近期查找高点的窗口长度  n1>n
     n:近期查找高点的窗口长度
     in_threshold:涨幅阈值，为正值
     de_threshold:回调跌幅阈值，为负值
@@ -70,6 +71,7 @@ def doublebottom(open, high, low, close, m1=None, m=None, n=None, **kwargs):
     m = int(m) if m and m > 0 else 55
     n = int(n) if n and n > 0 else 34
     m1 = int(m1) if m1 and m1 > 0 else 89
+    n1 = int(n1) if n1 and n1 > 0 else 55
 
 #    print(f'm1={m1},m={m},n={n}')
 #    print(f'in_threshold={in_threshold},de_threshold={de_threshold}')
@@ -91,6 +93,20 @@ def doublebottom(open, high, low, close, m1=None, m=None, n=None, **kwargs):
     df1['max'] = df3[name]  # 前n周期最大值
     df1['idxmax'] = df3['index']  # 最大值对应的索引序号
     df1['idxmaxdate'] = df3['idxmaxdate']
+
+    try:
+        ds6 = pd.concat([idxmax(ds2, i, n1) for i in range(len(ds2))])
+        # 由于前面n1-1行没有返回数据,索引ds3的长度要比ds2对n-1
+    except:
+        return None
+    df6 = ds6.reset_index()  # 将原索引变成一列index
+    dt = df1[indexname].iloc[df6['index']].to_frame()  # 注意其索引
+    dt = dt.reset_index(drop=True)
+    df6['idxmaxdate1'] = dt['date']
+    df6.index += (n1 - 1)  # 由于前面n-1行没有返回数据，将所以往后移n-1
+    df1['max1'] = df6[name]  # 前n周期最大值
+    df1['idxmax1'] = df6['index']  # 最大值对应的索引序号
+    df1['idxmaxdate1'] = df6['idxmaxdate1']
 
     ds4 = None
     idxmax1 = None  # 记录上一个序号
@@ -149,6 +165,7 @@ def doublebottom(open, high, low, close, m1=None, m=None, n=None, **kwargs):
     df1 = df1.assign(n_days=df1.index-df1['idxmax'])  # 当前位置距离高点天数
     df1 = df1.assign(m_days=df1.index-df1['idxmin'])  # 当前位置距离低点天数
     df1 = df1.assign(decreasing=df1['close']/df1['max']-1)
+    df1 = df1.assign(decreasing1=df1['close']/df1['max1']-1)
     df1 = df1.assign(increasing=df1['max']/df1['min']-1)
     df1 = df1.assign(increasing1=df1['max']/df1['min1']-1)
 
@@ -156,7 +173,8 @@ def doublebottom(open, high, low, close, m1=None, m=None, n=None, **kwargs):
                      & (df1['increasing'] > in_threshold)))
     df1 = df1.assign(double_bott1=((df1['decreasing'] < de_threshold)
                      & (df1['increasing'] > in_threshold)
-                     & (df1['increasing'] <= df1['increasing1']*1.05)))
+                     & (df1['max'] == df1['max1'])
+                     & (df1['min'] / df1['min1'] < 1.05)))  # 两个低点相差小于5%
 
     df1['double_bott'] = df1['double_bott'].astype(int)
     df1['double_bott'] = df1['double_bott'].replace(0, npNaN)
@@ -165,11 +183,13 @@ def doublebottom(open, high, low, close, m1=None, m=None, n=None, **kwargs):
 #    ln = len(df1)
 #    print(f'len(df1)={ln}')
     df = df1.set_index(indexname)
-    df = df.drop(columns=name)  # 删除close列
+    df = df.drop(columns=[name, 'idxmax', 'idxmax1', 'idxmin', 'idxmin1'])  # 删除close列
     df = df.rename(columns={'max': f'max_{n}',
+                            'max1': f'max_{n1}',
                             'min': f'min_{m}',
                             'min1': f'min_{m1}',
                             'decreasing': f'decreasing_{n}',
+                            'decreasing1': f'decreasing_{n1}',
                             'increasing': f'increasing_{m}',
                             'increasing1': f'increasing_{m1}'})
 #    if to_na:
