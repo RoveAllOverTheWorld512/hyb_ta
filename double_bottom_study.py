@@ -19,28 +19,45 @@ import datetime
 import sys
 
 
+def dfsortcolumns(df, subset=None):
+    '''
+    将df指定的列subset排在最左边
+    '''
+    if not isinstance(df, pd.DataFrame) or subset is None:
+        return df
+    if isinstance(subset, str):
+        subset = subset.split(',')
+    if not isinstance(subset, list):
+        return df
+    columns = df.columns
+    cols = []
+    for i in subset:
+        if (i in columns) and (i not in cols):
+            # 去掉df没有的列或subset指定重复的列
+            cols.append(i)
+    cols = cols + [i for i in columns if i not in cols]
+    return df[cols]
+
+
 def signal(gpdm, start, m1, m, n, in_threshold, de_threshold):
     tdxday = Tdxday(gpdm)
     ohlc = tdxday.get_qfqdata(start=start)
     if ohlc.empty:
         return None
-#    ohlc.ta.doublebottom(append=True, m=34, n=21, in_threshold=0.35, de_threshold=-0.2)
-#    ohlc.ta.doublebottom(append=True, m=m, n=n,
-#                         in_threshold=in_threshold, de_threshold=de_threshold)
     ohlc.ta.doublebottom(append=True, m1=m1, m=m, n=n,
                          in_threshold=in_threshold, de_threshold=de_threshold)
     try:
         # 新股由于交易天数少，无法计算，会出现没有返回
-        # double_bott的情况
+        # double_bott,double_bott1列的情况
 #        signals = ohlc.loc[(ohlc['double_bott'] == 1)]
         signals = ohlc.loc[(ohlc['double_bott1'] == 1)]
     except:
         return None
     if not signals.empty:
-        signals['date'] = signals.index
-        signals['gpdm'] = tdxday.gpdm
-        signals['gpmc'] = tdxday.gpmc
-        return signals[['date', 'gpdm', 'gpmc']]
+        signals = signals.assign(date=signals.index)
+        signals = signals.assign(gpdm=tdxday.gpdm)
+        signals = signals.assign(gpmc=tdxday.gpmc)
+        return dfsortcolumns(signals, subset='gpdm,gpmc,date')
     return None
 
 
@@ -51,13 +68,13 @@ if __name__ == '__main__':
     tdx = Tdx()
     gpdmb = tdx.get_gpdm()
 
-    sgdf = pd.DataFrame(columns=['date', 'gpdm', 'gpmc'])
-    start = '20180101'    # 股票交易数据起始时间
-    m1 = 121   # 上涨时间窗口长度
-    m = 55   # 上涨时间窗口长度
-    n = 21   # 回调时间窗口长度
+    sgdf = None
+    start = '20170101'    # 股票交易数据起始时间
+    m1 = 144   # 上涨时间窗口长度
+    m = 34   # 上涨时间窗口长度
+    n = 13   # 回调时间窗口长度
     in_threshold = 0.30  # 上涨幅度阈值
-    de_threshold = -0.15  # 回调幅度阈值
+    de_threshold = -0.20  # 回调幅度阈值
     k = 0  # 股票代码表起点
     ln = len(gpdmb)   # 股票代码表长度
 #    sys.exit()
@@ -67,10 +84,10 @@ if __name__ == '__main__':
         print(i + 1, ln, row.dm, row.gpmc)
         sg = signal(row.dm, start, m1, m, n, in_threshold, de_threshold)
         if isinstance(sg, pd.DataFrame):
-            sgdf = sgdf.append(sg)
+            sgdf = pd.concat([sgdf, sg])
         i += 1
 
-    csvfn = f'sgdf_{m1}_{m}_{n}.csv'
+    csvfn = f'sgdf_{m1}_{m}_{n}_{in_threshold}_{de_threshold}.csv'
     sgdf.to_csv(csvfn, index=False, encoding='GBK')
     sgdf1 = sgdf.loc[(sgdf.index > '2018-09-01')]
     gpdf = sgdf1[['gpdm', 'gpmc']]
@@ -90,8 +107,10 @@ if __name__ == '__main__':
 
 
 #    sys.exit()
-#    gpdm = '600485'
+#    gpdm = '600876'
 #    tdxday = Tdxday(gpdm)
 #    ohlc = tdxday.get_qfqdata(start=start)
 #    ohlc.ta.doublebottom(append=True, m1=m1, m=m, n=n,
 #                         in_threshold=in_threshold, de_threshold=de_threshold)
+#    df = dfsortcolumns(ohlc, subset='close')
+#    df.to_csv('tmp.csv')

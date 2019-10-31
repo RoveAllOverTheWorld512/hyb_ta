@@ -84,10 +84,13 @@ def doublebottom(open, high, low, close, m1=None, m=None, n=None, **kwargs):
     except:
         return None
     df3 = ds3.reset_index()  # 将原索引变成一列index
+    dt = df1[indexname].iloc[df3['index']].to_frame()  # 注意其索引
+    dt = dt.reset_index(drop=True)
+    df3['idxmaxdate'] = dt['date']
     df3.index += (n - 1)  # 由于前面n-1行没有返回数据，将所以往后移n-1
-
     df1['max'] = df3[name]  # 前n周期最大值
     df1['idxmax'] = df3['index']  # 最大值对应的索引序号
+    df1['idxmaxdate'] = df3['idxmaxdate']
 
     ds4 = None
     idxmax1 = None  # 记录上一个序号
@@ -105,11 +108,16 @@ def doublebottom(open, high, low, close, m1=None, m=None, n=None, **kwargs):
     if ds4 is None:
         df1['min'] = npNaN
         df1['idxmin'] = npNaN
+        df1['idxmindate'] = npNaN
     else:
         df4 = ds4.reset_index()
+        dt = df1[indexname].iloc[df4['index']].to_frame()  # 注意其索引
+        dt = dt.reset_index(drop=True)
+        df4['idxmindate'] = dt['date']
         df4.index += (len(ds2)-len(ds4))  # 由于前面有较多行未返回数据
         df1['min'] = df4[name]
         df1['idxmin'] = df4['index']
+        df1['idxmindate'] = df4['idxmindate']
 
     ds5 = None
     idxmax1 = None  # 记录上一个序号
@@ -127,11 +135,16 @@ def doublebottom(open, high, low, close, m1=None, m=None, n=None, **kwargs):
     if ds5 is None:
         df1['min1'] = npNaN
         df1['idxmin1'] = npNaN
+        df1['idxmindate1'] = npNaN
     else:
         df5 = ds5.reset_index()
+        dt = df1[indexname].iloc[df5['index']].to_frame()  # 注意其索引
+        dt = dt.reset_index(drop=True)
+        df5['idxmindate1'] = dt['date']
         df5.index += (len(ds2)-len(ds5))  # 由于前面有较多行未返回数据
         df1['min1'] = df5[name]
         df1['idxmin1'] = df5['index']
+        df1['idxmindate1'] = df5['idxmindate1']
 
     df1 = df1.assign(n_days=df1.index-df1['idxmax'])  # 当前位置距离高点天数
     df1 = df1.assign(m_days=df1.index-df1['idxmin'])  # 当前位置距离低点天数
