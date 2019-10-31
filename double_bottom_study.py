@@ -77,33 +77,33 @@ if __name__ == '__main__':
     # 上面4个参数设定需遵循n+m<=n1,m1远大于m，确保区域叠加
     in_threshold = 0.30  # 上涨幅度阈值
     de_threshold = -0.20  # 回调幅度阈值
-    dmb = '''600212.SH
-    600393.SH
-    600844.SH
-    600876.SH
-    601872.SH
-    603603.SH
-    603607.SH
-    603936.SH
-    000068.SZ
-    000532.SZ
-    000533.SZ
-    000677.SZ
-    002209.SZ
-    002486.SZ
-    002492.SZ
-    002524.SZ
-    002552.SZ
-    002584.SZ
-    002786.SZ
-    002795.SZ
-    002800.SZ
-    002947.SZ
-    300071.SZ
-    300239.SZ
-    300306.SZ'''.replace(' ',"").split('\n')
-    dmb = [dm[:6] if dm != '' else None for dm in dmb]
-    gpdmb = gpdmb.loc[gpdmb['dm'].isin(dmb)]
+#    dmb = '''600212.SH
+#    600393.SH
+#    600844.SH
+#    600876.SH
+#    601872.SH
+#    603603.SH
+#    603607.SH
+#    603936.SH
+#    000068.SZ
+#    000532.SZ
+#    000533.SZ
+#    000677.SZ
+#    002209.SZ
+#    002486.SZ
+#    002492.SZ
+#    002524.SZ
+#    002552.SZ
+#    002584.SZ
+#    002786.SZ
+#    002795.SZ
+#    002800.SZ
+#    002947.SZ
+#    300071.SZ
+#    300239.SZ
+#    300306.SZ'''.replace(' ',"").split('\n')
+#    dmb = [dm[:6] if dm != '' else None for dm in dmb]
+#    gpdmb = gpdmb.loc[gpdmb['dm'].isin(dmb)]
 #    sys.exit()
 
     k = 0  # 股票代码表起点
@@ -137,10 +137,10 @@ if __name__ == '__main__':
 
 #    sys.exit()
 #    gpdm = '603936'
-#    gpdm = '603936'
+#    gpdm = '600876'
 #    tdxday = Tdxday(gpdm)
 #    ohlc = tdxday.get_qfqdata(start=start)
 #    ohlc.ta.doublebottom(append=True, m1=m1, m=m, n1=n1, n=n,
 #                         in_threshold=in_threshold, de_threshold=de_threshold)
 #    df = dfsortcolumns(ohlc, subset='close')
-#    df.to_csv('tmp.csv')
+#    df.to_csv('tmp4.csv')

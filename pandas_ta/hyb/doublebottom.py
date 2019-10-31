@@ -201,13 +201,14 @@ def doublebottom(open, high, low, close, m1=None, m=None, n1=None, n=None, **kwa
     df1 = df1.assign(n1_days=df1.index-df1['idxmax1'])  # 当前位置距离远高点天数
     df1 = df1.assign(m_days=df1.index-df1['idxmin'])  # 当前位置距离低点天数
     df1 = df1.assign(m1_days=df1.index-df1['idxmin1'])  # 当前位置距离远低点天数
-    df1 = df1.assign(min_days=df1['idxmin1']-df1['idxmin'])  # 两个低点间交易日天数
+    df1 = df1.assign(min_days=df1['idxmin']-df1['idxmin1'])  # 两个低点间交易日天数
     df1 = df1.assign(decreasing=df1['close']/df1['max']-1)  # 近高点回调幅度
     df1 = df1.assign(decreasing1=df1['close']/df1['max1']-1)  # 远高点回调幅度
     df1 = df1.assign(increasing=df1['max']/df1['min']-1)  # 近低点到高点的上涨幅度
     df1 = df1.assign(increasing1=df1['max']/df1['min1']-1)  # 远低点到高点的上涨幅度
     df1 = df1.assign(min_increasing=df1['min']/df1['min1']-1)  # 低点间的上涨幅度
     df1 = df1.assign(min_increasing1=df1['min_increasing']/df1['min_days'])
+    df1.loc[(df1['min_days'] == 0), "min_increasing1"] = 0
     # 低点间日平均上涨幅度
     # 两个低点间每个交易日涨幅
 
@@ -229,7 +230,7 @@ def doublebottom(open, high, low, close, m1=None, m=None, n1=None, n=None, **kwa
 #    ln = len(df1)
 #    print(f'len(df1)={ln}')
     df = df1.set_index(indexname)
-    df = df.drop(columns=[name, 'idxmax', 'idxmax1', 'idxmin', 'idxmin1'])  # 删除close列
+    df = df.drop(columns=[name, 'idxmax', 'idxmax1', 'idxmax2', 'idxmin', 'idxmin1'])  # 删除close列
     df = df.rename(columns={'max': f'max_{n}',
                             'max1': f'max_{n1}',
                             'min': f'min_{m}',
