@@ -69,14 +69,14 @@ if __name__ == '__main__':
     gpdmb = tdx.get_gpdm()
 
     sgdf = None
-    start = '20170101'    # 股票交易数据起始时间
+    start = '20160101'    # 股票交易数据起始时间
     m1 = 144   # 上涨时间窗口长度
     m = 34   # 上涨时间窗口长度
     n1 = 55   # 回调时间窗口长度
     n = 21   # 回调时间窗口长度
+    # 上面4个参数设定需遵循n+m<=n1,m1远大于m，确保区域叠加
     in_threshold = 0.30  # 上涨幅度阈值
     de_threshold = -0.20  # 回调幅度阈值
-
     dmb = '''600212.SH
     600393.SH
     600844.SH
@@ -104,6 +104,7 @@ if __name__ == '__main__':
     300306.SZ'''.replace(' ',"").split('\n')
     dmb = [dm[:6] if dm != '' else None for dm in dmb]
     gpdmb = gpdmb.loc[gpdmb['dm'].isin(dmb)]
+#    sys.exit()
 
     k = 0  # 股票代码表起点
     ln = len(gpdmb)   # 股票代码表长度
