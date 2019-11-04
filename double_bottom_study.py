@@ -69,13 +69,14 @@ if __name__ == '__main__':
     gpdmb = tdx.get_gpdm()
 
     sgdf = None
-    start = '20160101'    # 股票交易数据起始时间
+    start = '20190101'    # 股票交易数据起始时间
+    end = datetime.datetime.now().strftime('%Y%m%d')
     m1 = 144   # 上涨时间窗口长度
     m = 34   # 上涨时间窗口长度
     n1 = 55   # 回调时间窗口长度
     n = 21   # 回调时间窗口长度
     # 上面4个参数设定需遵循n+m<=n1,m1远大于m，确保区域叠加
-    in_threshold = 0.30  # 上涨幅度阈值
+    in_threshold = 0.40  # 上涨幅度阈值
     de_threshold = -0.20  # 回调幅度阈值
 #    dmb = '''600212.SH
 #    600393.SH
@@ -116,7 +117,7 @@ if __name__ == '__main__':
             sgdf = pd.concat([sgdf, sg])
         i += 1
 
-    csvfn = f'sgdf_{m1}_{m}_{n}_{in_threshold}_{de_threshold}.csv'
+    csvfn = f'sgdf_{start}_{end}_{m1}_{m}_{n}_{in_threshold}_{de_threshold}.csv'
     sgdf.to_csv(csvfn, index=False, encoding='GBK')
     sgdf1 = sgdf.loc[(sgdf.index > '2018-09-01')]
     gpdf = sgdf1[['gpdm', 'gpmc']]

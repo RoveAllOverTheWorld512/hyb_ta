@@ -27,7 +27,6 @@ from .hyb.fractals import fractals
 from .hyb.alligator import alligator
 from .hyb.bottomreversal import bottomreversal
 from .hyb.topreversal import topreversal
-from .hyb.bottomreversal import bottomreversal
 from .hyb.bottompattern import bottompattern
 from .hyb.doublebottom import doublebottom
 
