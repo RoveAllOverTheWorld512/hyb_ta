@@ -24,14 +24,15 @@ def py(s):
     '''
     load_single_dict({ord('长'): 'cháng,zhǎng'})  # 调整 "长" 字的拼音顺序
     return ''.join(lazy_pinyin(s, style=Style.FIRST_LETTER))
-            
+
+
 def get_sylxls(file):
     '''
     从市盈率表提取个股数据
-    '''    
+    '''
     print(file)
     rq = re.findall('csi(\d{8})\.xls', file)[0]
-    try:    
+    try:
         wb = xlrd.open_workbook(file, encoding_override="cp1252")
     except:
         return None

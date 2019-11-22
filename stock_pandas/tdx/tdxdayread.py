@@ -46,8 +46,9 @@ class Tdxday(object):
     2、8位字符，2位市场代码字母sh或sz，6位数字。除包含A股外，还包括基金和指数
         如sh502011、sz399901。处理方法：在股票代码表中查询，如为A股代码，按股票流程处理。
         如不是，按指数或基金处理。补齐.day后按下条情况处理。
-    3、12位字符串，形如sh600000.day，文件名。在默认路径查找数据文件
-    4、全路径字符串。处理方法：直接处理。
+    3、9位字符串,形如600000.sh。处理方法：在股票代码表中查询，如为A股代码，按股票流程处理。
+    4、12位字符串，形如sh600000.day，文件名。在默认路径查找数据文件
+    5、全路径字符串。处理方法：直接处理。
 
     """
     def __init__(self, filename):
@@ -68,6 +69,7 @@ class Tdxday(object):
         '''
         检查输入文件名是否符合规范，提取股票基本信息
         '''
+        self._filename = self._filename.lower()
         check = re.search('(\d{6})', self._filename)
         if not check:
             raise CustomError('参数中不包含6位数字代码')
@@ -88,12 +90,19 @@ class Tdxday(object):
                 else:
                     self.argvtype = 2
                     self.market, self.dm = check.groups()        
+            elif len(self._filename) == 9:  # 9位
+                check = re.search('(\d{6})\.(s[h|z])', self._filename)
+                if not check:
+                    raise CustomError('不是形如【600000.sh】9位字符数字代码')
+                else:
+                    self.argvtype = 3
+                    self.dm, self.market = check.groups()        
             elif len(self._filename) == 12:  # 12位
                 check = re.search('(s[h|z])(\d{6})\.day', self._filename)
                 if not check:
                     raise CustomError('不是形如【sh600000.day】12位字符数字代码')
                 else:
-                    self.argvtype = 3
+                    self.argvtype = 4
                     self.market, self.dm = check.groups()        
             else:
                 raise CustomError('输入参数有误！')
@@ -101,7 +110,7 @@ class Tdxday(object):
             check = re.search('(s[h|z])(\d{6})\.day', self._filename)
             if not check:
                 raise CustomError('不包含形如【sh600000.day】12位字符数字代码')
-            self.argvtype = 4
+            self.argvtype = 5
             self.market, self.dm = check.groups()        
             self.dayfilename = self._filename
         # 检测是否为A股
@@ -116,7 +125,7 @@ class Tdxday(object):
             self.gplb = gpinfo['gplb'][0]
             self.adjcsvfn = os.path.join(tdx.adjpath,
                                          self.dm + '.csv')
-            if self.argvtype in (1, 2, 3):
+            if self.argvtype in (1, 2, 3, 4):
                 self.dayfilename = os.path.join(tdx.daybasepath,
                                                 f'{self.market}\\lday\\{self.market}{self.dm}.day')
         else:  # 不是A股

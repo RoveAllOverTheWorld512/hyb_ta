@@ -13,7 +13,7 @@ QQ: 592440193
 import pandas as pd
 from stock_pandas.tdx.tdxdayread import Tdxday
 from stock_pandas.tdx.class_func import *
-from stock_pandas.misc.badnews import *
+from stock_pandas.misc.supershort import *
 import sys
 
 
@@ -110,7 +110,7 @@ if __name__ == '__main__':
     df = df.loc[(df['date'] >= start) & (df['date'] <= end)]
     df = selefirstsignal(df)
     df = df.loc[(df['decreasing_34'] < -0.25)]
-    df = df.loc[(df['increasing_55'] > 0.60)]
+    df = df.loc[(df['increasing_55'] > 0.50)]
     df = df.reset_index(drop=True)
 #    sys.exit()
     
@@ -127,7 +127,7 @@ if __name__ == '__main__':
         date = gpxx.date.strftime('%Y-%m-%d')
         tdxday = Tdxday(dm)
         ohlc = tdxday.get_qfqdata(start='20170101')
-        data.append([gpxx.gpdm, gpmc, date] + badnews(ohlc, date, j, k, n, m))
+        data.append([gpxx.gpdm, gpmc, date] + supershort(ohlc, date, j, k, n, m))
 
     rs = pd.DataFrame(data,
                       columns=['gpdm', 'gpmc', 'date',
@@ -139,4 +139,4 @@ if __name__ == '__main__':
                                'date3_max', 'days3_max', 'close3_max', 'zf3_max'])
     rs = rs.round(4)
 #    rs.to_csv(f'doublebottom_{j}_{k}_{n}.csv', encoding='GBK')
-    rs.to_csv(f'f:\data\dou_bott1_{start}_{end}_{j}_{k}_{n}.csv', encoding='GBK')
+    rs.to_csv(f'f:\data\supershort_{start}_{end}_{j}_{k}_{n}.csv', encoding='GBK')

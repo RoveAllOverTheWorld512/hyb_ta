@@ -245,9 +245,56 @@ def openday_df():
 
     return df
 
+def readtxt(fn):
+    '''
+    读取txt文件
+    '''
+    txt = None
+    if os.path.exists(fn) :
+        #用二进制方式打开再转成字符串，可以避免直接打开转换出错
+        with open(fn,'rb') as f:
+            txt = f.read()
+            if txt[:3] == b'\xef\xbb\xbf' :
+                txt = txt[3:].decode('UTF8','ignore')   #UTF-8
+            elif txt[:2] == b'\xfe\xff' :
+                txt = txt[2:].decode('UTF-16','ignore')  #Unicode big endian
+            elif txt[:2] == b'\xff\xfe' :
+                txt = txt[2:].decode('UTF-16','ignore')  #Unicode
+            else :
+                txt = txt.decode('GBK','ignore')      #ansi编码
+    else:
+        print(f"文件{fn}不存在！")
+
+    return txt
+
+
+def dfsortcolumns(df, subset=None):
+    '''
+    将df指定的列subset排在最左边
+    '''
+    if not isinstance(df, pd.DataFrame) or subset is None:
+        return df
+    if isinstance(subset, str):
+        subset = subset.split(',')
+    if not isinstance(subset, list):
+        return df
+    columns = df.columns
+    if df.index.name not in columns:
+        df = df.reset_index()
+        columns = df.columns
+    cols = []
+    for i in subset:
+        if (i in columns) and (i not in cols):
+            # 去掉df没有的列或subset指定重复的列
+            cols.append(i)
+    cols = cols + [i for i in columns if i not in cols]
+    return df[cols]
 
 if __name__ == '__main__':
     fn = r'd:\tdx\shlday\sh601360.day'
     df = get_data(fn)
 #    dt = '20191001'
 #    print(lastopenday(dt))
+
+    fn = r'F:\pandas-ta_project\tmp.txt'
+    txt = readtxt(fn).splitlines()

@@ -24,6 +24,7 @@ class Tdx():
     def __init__(self):
         self.__modpath = os.path.dirname(__file__)  # 保存本模块路径
         self.__basepath = TDX_PATH  # 通达信安装文件夹
+        self.__blocknew = TDX_BLOCKNEW  # 自定义板块文件夹
         self.__hq_cache = TDX_HQ_CACHE  # 行情高速缓存文件夹
         self.__daybasepath = TDX_DAY_BASEPATH  # 交易数据.day根文件夹
         self.__adjfactorpath = ADJ_PATH  # 复权数据文件夹
@@ -96,6 +97,50 @@ class Tdx():
         '''获取文件名'''
         return os.path.splitext(os.path.basename(filename))[0]
 
+    def get_tdxblknew(self):
+        '''
+        获取通达信自定义板块信息
+        '''
+        def cutstr(s):
+            i=0
+            while s[i]!=0:
+                i += 1
+            return s[:i]
+
+        block_file = os.path.join(self.__blocknew, 'blocknew.cfg')
+        if not os.path.exists(block_file):
+            raise Exception('file not exists')
+        block_data = open(block_file, 'rb').read()
+        blknum = int(len(block_data)/120)
+        blklst = []
+        for i in range(blknum):
+            blkstr = block_data[i * 120: (i + 1) * 120]
+            blkname, shtname = struct.unpack('50s70s', blkstr)
+            blkname = cutstr(blkname).decode('GBK', 'ignore')
+            shtname = cutstr(shtname).decode('GBK', 'ignore')
+            blklst.append([blkname, shtname])
+
+            bf = os.path.join(self.__blocknew, shtname + '.blk')
+            if not os.path.exists(bf):
+                raise Exception('file not exists')
+
+            codes = readtxt(bf).splitlines()
+            for index,code in enumerate(codes):
+                if code is not '':
+                    result.append(
+                        OrderedDict([
+                            ("blockname",n1),
+                            ("block_type",n2),
+                            ('code_index',index),
+                            ('code',code[1:])
+                        ])
+                    )
+
+
+            
+        return blklst
+        
+        
     def get_tdxblk(self, lb='gn', bkpy=None):
         '''
         获取通达信板块信息

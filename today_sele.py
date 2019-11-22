@@ -13,13 +13,16 @@ QQ: 592440193
 import pandas as pd
 from stock_pandas.tdx.tdxdayread import Tdxday
 from stock_pandas.tdx.class_func import *
-from stock_pandas.misc.badnews import *
+from stock_pandas.misc.supershort import *
 import sys
+import os
+import datetime
+import time
 
 
 def selefirstsignal(df):
     '''
-    删除与前一个信号小于2周的重复信号
+    删除与前一个信号小于3周的重复信号
     '''
 #    df = df.sort_index()
     if df.index.name == 'date' and ('date' not in df.columns):
@@ -28,7 +31,7 @@ def selefirstsignal(df):
     df['date'] = pd.to_datetime(df['date'])
     df = df.assign(tmp=df['date']-df['date'].shift(1))
     df.loc[df['gpdm'] != df['gpdm'].shift(1), 'tmp'] = None
-    df = df.loc[((df['tmp'] > pd.Timedelta('14 days')) | pd.isnull(df['tmp']))]
+    df = df.loc[((df['tmp'] > pd.Timedelta('21 days')) | pd.isnull(df['tmp']))]
     df = df.drop(columns=['tmp'])
     return df
 
@@ -102,32 +105,61 @@ if __name__ == '__main__':
 #    rs.to_csv(f'dou_bott_{start}_{end}_{j}_{k}_{n}.csv', encoding='GBK')
 
 ###############################################################################
-
-    csvfn = r'F:\data\sgdf_20170101_20191108_144_55_34_0.4_-0.2.csv'
+    df = None
     start = '2017-01-01'
-    end = '2019-12-31'
-    df = pd.read_csv(csvfn, encoding='GBK',  parse_dates=True, infer_datetime_format=True)
-    df = df.loc[(df['date'] >= start) & (df['date'] <= end)]
-    df = selefirstsignal(df)
-    df = df.loc[(df['decreasing_34'] < -0.25)]
-    df = df.loc[(df['increasing_55'] > 0.60)]
+    end = (datetime.datetime.now() - datetime.timedelta(2)).strftime('%Y-%m-%d')
+#    end = (datetime.datetime.now() - datetime.timedelta(5)).strftime('%Y-%m-%d')
+    gplblst = {'SHZBA': '沪市主板A股',
+               'SHKCBA': '沪市科创板A股',
+               'SZZBA': '深市主板A股',
+               'SZZXBA': '深市中小板A股',
+               'SZCYBA': '深市创业板A股'}
+    for lb in gplblst:
+        csvfn = f'f:\data\{lb}_20180101_20191122_144_89_55_0.5_-0.3.csv'
+        if os.path.exists(csvfn):
+            df1 = pd.read_csv(csvfn, encoding='GBK',  parse_dates=True, infer_datetime_format=True)
+#            df1 = df1.loc[(df1['double_bott'] == 1)]
+#            df1 = selefirstsignal(df1)
+#            df1 = df1.loc[(df1['date'] >= start) & (df1['date'] <= end)]
+            df = pd.concat([df, df1])
+
     df = df.reset_index(drop=True)
-#    sys.exit()
+    df = df.loc[(df['date'] > end)]
+    df.to_csv(r'f:\data\tmp4.csv', encoding='GBK', index=False)
+
+#    df = df.loc[(df['decreasing_34'] < -0.25)]
+#    df = df.loc[(df['increasing_55'] > 0.50)]
+#    df = selefirstsignal(df)
+
+    sys.exit()
     
     data = []
     j = 30
-    k = 10
-    n = 10
-    m = 30
+    k = 20
+    n = 20
+    m = 60
     ln = len(df)
+    start_time = time.time()
     for i, gpxx in df.iterrows():
         print(i, ln, gpxx.gpdm, gpxx.gpmc, gpxx.date)
         dm = gpxx.gpdm[:6]
         gpmc = gpxx.gpmc
         date = gpxx.date.strftime('%Y-%m-%d')
         tdxday = Tdxday(dm)
-        ohlc = tdxday.get_qfqdata(start='20170101')
-        data.append([gpxx.gpdm, gpmc, date] + badnews(ohlc, date, j, k, n, m))
+        ohlc = tdxday.get_qfqdata(start='20160101')
+        data.append([gpxx.gpdm, gpmc, date] + supershort(ohlc, date, j, k, n, m))
+
+        if ((i + 1) % 50 == 0) or (i >= ln - 1):
+            now_time = time.time()
+            t1 = now_time - start_time
+            # 每只股票秒数
+            p = t1 / (i - k + 1)
+            # 估计剩余时间
+            t1 = t1 / 60
+            t2 = (ln - i) * p / 60
+
+            print('------已用时%d分钟，估计还需要%d分钟' % (t1, t2))
+
 
     rs = pd.DataFrame(data,
                       columns=['gpdm', 'gpmc', 'date',
@@ -139,4 +171,4 @@ if __name__ == '__main__':
                                'date3_max', 'days3_max', 'close3_max', 'zf3_max'])
     rs = rs.round(4)
 #    rs.to_csv(f'doublebottom_{j}_{k}_{n}.csv', encoding='GBK')
-    rs.to_csv(f'f:\data\dou_bott1_{start}_{end}_{j}_{k}_{n}.csv', encoding='GBK')
+    rs.to_csv(f'f:\data\supershort1_{start}_{end}_{j}_{k}_{n}.csv', encoding='GBK')

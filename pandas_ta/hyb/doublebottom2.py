@@ -85,34 +85,30 @@ def doublebottom(open, high, low, close, m1=None, m=None, n1=None, n=None, **kwa
     try:
         ds3 = pd.concat([idxmax(ds2, i, n) for i in range(len(ds2))])
         # 由于前面n-1行没有返回数据,索引ds3的长度要比ds2对n-1
-        df3 = ds3.reset_index()  # 将原索引变成一列index
-        dt = df1[indexname].iloc[df3['index']].to_frame()  # 注意其索引
-        dt = dt.reset_index(drop=True)
-        df3['idxmaxdate'] = dt['date']
-        df3.index += (n - 1)  # 由于前面n-1行没有返回数据，将所以往后移n-1
-        df1['max'] = df3[name]  # 前n周期最大值
-        df1['idxmax'] = df3['index']  # 最大值对应的索引序号
-        df1['idxmaxdate'] = df3['idxmaxdate']
     except:
-        df1['max'] = npNaN  # 前n周期最大值
-        df1['idxmax'] = npNaN  # 最大值对应的索引序号
-        df1['idxmaxdate'] = npNaN
+        return None
+    df3 = ds3.reset_index()  # 将原索引变成一列index
+    dt = df1[indexname].iloc[df3['index']].to_frame()  # 注意其索引
+    dt = dt.reset_index(drop=True)
+    df3['idxmaxdate'] = dt['date']
+    df3.index += (n - 1)  # 由于前面n-1行没有返回数据，将所以往后移n-1
+    df1['max'] = df3[name]  # 前n周期最大值
+    df1['idxmax'] = df3['index']  # 最大值对应的索引序号
+    df1['idxmaxdate'] = df3['idxmaxdate']
 
     try:
         ds6 = pd.concat([idxmax(ds2, i, n1) for i in range(len(ds2))])
         # 由于前面n1-1行没有返回数据,索引ds3的长度要比ds2对n-1
-        df6 = ds6.reset_index()  # 将原索引变成一列index
-        dt = df1[indexname].iloc[df6['index']].to_frame()  # 注意其索引
-        dt = dt.reset_index(drop=True)
-        df6['idxmaxdate1'] = dt['date']
-        df6.index += (n1 - 1)  # 由于前面n-1行没有返回数据，将所以往后移n-1
-        df1['max1'] = df6[name]  # 前n周期最大值
-        df1['idxmax1'] = df6['index']  # 最大值对应的索引序号
-        df1['idxmaxdate1'] = df6['idxmaxdate1']
     except:
-        df1['max1'] = npNaN  # 前n周期最大值
-        df1['idxmax1'] = npNaN  # 最大值对应的索引序号
-        df1['idxmaxdate1'] = npNaN
+        return None
+    df6 = ds6.reset_index()  # 将原索引变成一列index
+    dt = df1[indexname].iloc[df6['index']].to_frame()  # 注意其索引
+    dt = dt.reset_index(drop=True)
+    df6['idxmaxdate1'] = dt['date']
+    df6.index += (n1 - 1)  # 由于前面n-1行没有返回数据，将所以往后移n-1
+    df1['max1'] = df6[name]  # 前n周期最大值
+    df1['idxmax1'] = df6['index']  # 最大值对应的索引序号
+    df1['idxmaxdate1'] = df6['idxmaxdate1']
 
     ds4 = None
     idx1 = None  # 记录上一个序号
@@ -168,7 +164,7 @@ def doublebottom(open, high, low, close, m1=None, m=None, n1=None, n=None, **kwa
         df1['idxmin1'] = df5['index']
         df1['idxmindate1'] = df5['idxmindate1']
         
-    # 两个低点间的高点max2
+    # 两个低点间的高点
     ds7 = None
     idx = None  # 记录上一个序号
     idx1 = None  # 记录上一个序号
@@ -219,13 +215,11 @@ def doublebottom(open, high, low, close, m1=None, m=None, n1=None, n=None, **kwa
 
     df1 = df1.assign(double_bott=((df1['decreasing'] < de_threshold)
                      & (df1['increasing'] > in_threshold)))
-    # double_bott简单满足涨跌幅
     df1 = df1.assign(double_bott1=((df1['decreasing'] < de_threshold)
                      & (df1['increasing'] > in_threshold)
-                     & (df1['max'] == df1['max1'])   # 近期长短两个窗口的近期高点相等
-                     & (df1['max2'] < df1['max'])   # 两个低点间的高点低于近期高点
+                     & (df1['max'] == df1['max1'])
+                     & (df1['max2'] < df1['max'])
                      & (df1['min'] / df1['min1'] < 1.05)))  # 两个低点相差小于5%
-    # double_bott1除简单满足涨跌幅外，
     # 双底确定条件：通过寻找远近两个高点，如果两个高点重合，说明这个高点为近期高点
     # 不是下降通道的中继高点
     # 从这个高点往前寻找远近两个低点，两个低点相差不大，可以用每日
