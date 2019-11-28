@@ -115,7 +115,7 @@ if __name__ == '__main__':
                'SZCYBA': '深市创业板A股'}
     for lb in gplblst:
 #        csvfn = f'f:\data\{lb}_20180101_20191122_144_89_55_0.5_-0.3.csv'
-        csvfn = f'f:\data\{lb}_20180101_20191123_144_89_13_0.5_-0.3.csv'
+        csvfn = f'f:\data\{lb}_20181001_20191124_89_55_8_0.5_-0.3.csv'
         if os.path.exists(csvfn):
             df1 = pd.read_csv(csvfn, encoding='GBK',  parse_dates=True, infer_datetime_format=True)
             df1 = df1.loc[(df1['double_bott'] == 1)]
@@ -170,4 +170,4 @@ if __name__ == '__main__':
     rs = rs.round(4)
 #    rs.to_csv(f'doublebottom_{j}_{k}_{n}.csv', encoding='GBK')
 #    rs.to_csv(f'f:\data\supershort__89_55_0.5_-0.3_{start}_{end}_{j}_{k}_{n}_{m}.csv', encoding='GBK')
-    rs.to_csv(f'f:\data\supershort13__89_55_0.5_-0.3_{start}_{end}_{j}_{k}_{n}_{m}.csv', encoding='GBK')
+    rs.to_csv(f'f:\data\supershort_8_-0.3_{start}_{end}_{j}_{k}_{n}_{m}.csv', encoding='GBK')

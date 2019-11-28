@@ -48,7 +48,7 @@ def selefirstsignal(df):
     df = df.sort_index()
     df = df.reset_index()
     df = df.assign(tmp=df['date']-df['date'].shift(1))
-    df = df.loc[((df['tmp'] > pd.Timedelta('21 days')) | pd.isnull(df['tmp']))]
+    df = df.loc[((df['tmp'] > pd.Timedelta('14 days')) | pd.isnull(df['tmp']))]
     df = df.drop(columns=['tmp'])
     return df.set_index('date')
 
@@ -67,7 +67,7 @@ def signal(gpdm, start, m1, m, n, in_threshold, de_threshold):
     ohlc = ohlc.sort_index()
     ohlc['gpmc'].fillna(method='ffill', inplace=True)
     ohlc = ohlc.assign(date=ohlc.index)
-    start1 = '20190101'
+    start1 = '20180101'
     ohlc = ohlc.loc[(ohlc['date'] >= start1)]
 #    ohlc1 = ohlc.loc[(ohlc['double_bott'] == 1)]
 
@@ -75,7 +75,8 @@ def signal(gpdm, start, m1, m, n, in_threshold, de_threshold):
 #    if ohlc1.empty:
 #        return None
     ohlc = ohlc.assign(gpdm=tdxday.gpdm)
-    df = dfsortcolumns(ohlc, subset='gpdm,gpmc,date,close')
+    ohlc = ohlc.assign(ssdate=tdxday.ssdate)
+    df = dfsortcolumns(ohlc, subset='gpdm,gpmc,ssdate,date,close')
     # 注意：df.iloc[-1]返回的是pandas.core.series.Series
     # 下句-1后面有冒号，返回的是pandas.core.frame.DataFrame。“:”不能少，
 #    return df.iloc[-1:]
@@ -89,8 +90,11 @@ if __name__ == '__main__':
 
     tdx = Tdx()
     gpdmb = tdx.get_gpdm()
-
-    start = '20180101'    # 股票交易数据起始时间
+    gpsssj = tdx.get_ssdate()
+    gpsssj.index.name = gpsssj.index.name.lower()
+    gpdmb = pd.merge(gpdmb, gpsssj, on='gpdm', how='left')
+#    sys.exit()
+    start = '20180501'    # 股票交易数据起始时间
     end = datetime.datetime.now().strftime('%Y%m%d')
 #    m1 = 144   # 上涨时间窗口长度
 #    m = 55   # 上涨时间窗口长度
@@ -101,14 +105,17 @@ if __name__ == '__main__':
 #    de_threshold = -0.25  # 回调幅度阈值
 
     m1 = 144   # 上涨时间窗口长度
-    m = 89   # 上涨时间窗口长度
-    n1 = 89   # 回调时间窗口长度
-    n = 55   # 回调时间窗口长度
+    m = 55   # 上涨时间窗口长度
+    n1 = 55   # 回调时间窗口长度
+    n = 13   # 回调时间窗口长度
     # 上面4个参数设定需遵循n+m<=n1,m1远大于m，确保区域叠加
     in_threshold = 0.50  # 上涨幅度阈值
     de_threshold = -0.30  # 回调幅度阈值
 
 #    sys.exit()
+#    600082.SH
+#    600083.SH
+#    600084.SH
 #    dmb = '''
 #    300001.SZ
 #    600006.SH
@@ -123,18 +130,6 @@ if __name__ == '__main__':
 #    600078.SH
 #    600080.SH
 #    600081.SH
-#    600082.SH
-#    600083.SH
-#    600084.SH
-#    600086.SH
-#    600088.SH
-#    600093.SH
-#    600094.SH
-#    600095.SH
-#    600097.SH
-#    600105.SH
-#    600107.SH
-#    dmb = '''
 #    300001.SZ
 #    600112.SH
 #    600116.SH'''.replace(' ',"").split('\n')

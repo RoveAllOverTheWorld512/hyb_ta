@@ -62,6 +62,7 @@ class Tdxday(object):
         self.gpmc = None   # 股票名称
         self.gppy = None   # 股票拼音
         self.gplb = None   # 股票类别
+        self.ssdate = None  # 上市日期
         self.adjcsvfn = None   # 复权文件名
         self.check_filename()
 
@@ -116,13 +117,18 @@ class Tdxday(object):
         # 检测是否为A股
         tdx = Tdx()
         gpdmb = tdx.get_gpdm()
+        gpsssj = tdx.get_ssdate()
+        gpsssj.index.name = gpsssj.index.name.lower()
+        gpdmb = pd.merge(gpdmb, gpsssj, on='gpdm', how='left')
         gpinfo = gpdmb.loc[(gpdmb['dm'] == self.dm) & (gpdmb['sc'] == self.market), :]
+        # 注意gpinfo为 pandas.core.frame.DataFrame
         # 是否A股
         if len(gpinfo) == 1:  # 是A股
             self.gpdm = gpinfo.index[0]
             self.gpmc = gpinfo['gpmc'][0]
             self.gppy = gpinfo['gppy'][0]
             self.gplb = gpinfo['gplb'][0]
+            self.ssdate = gpinfo['ssdate'][0]
             self.adjcsvfn = os.path.join(tdx.adjpath,
                                          self.dm + '.csv')
             if self.argvtype in (1, 2, 3, 4):
