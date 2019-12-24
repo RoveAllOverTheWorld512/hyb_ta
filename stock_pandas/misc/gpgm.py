@@ -20,6 +20,7 @@ import xlrd
 import sqlite3
 from pypinyin import lazy_pinyin, Style, load_single_dict
 import dateutil
+from stock_pandas.tdx.tdxconstants import *
 
 
 def py(s):
@@ -94,7 +95,7 @@ def get_fn(year=None, month=None, last=None):
 
 
 def get_gpmc_fromdb(gpdm):
-    dbfn = r'f:\data\STOCKBASE.db'
+    dbfn = os.path.join(SQLITE_PATH, 'STOCKBASE.db')
     dbcn = sqlite3.connect(dbfn)
     curs = dbcn.cursor()
     curs.execute('select rq,gpmc from gpgm where gpdm=?', (gpdm, ))
@@ -109,7 +110,7 @@ if __name__ == '__main__':
 #    gpdm='600734.SH'
 #    gpmc=get_gpmc_fromdb(gpdm)
 #    sys.exit()
-    dbfn = r'f:\data\STOCKBASE.db'
+    dbfn = os.path.join(SQLITE_PATH, 'STOCKBASE.db')
     dbcn = sqlite3.connect(dbfn)
     curs = dbcn.cursor()
     curs.execute('select rq,gpdm,gpmc from gpgm')
@@ -124,16 +125,17 @@ if __name__ == '__main__':
     lastdate = df1.iloc[0].date
     # 最后日期原来的文件名
     files = get_fn(last=lastdate)
-    # 提取股票名称
-    df2 = pd.concat([get_gpmc(os.path.join(r'd:\syl', fn)) for fn in files])
-    # 下面这条很关键，让从库中提取的最新名称重复导入，以便后面删除保留新加的股票名称
-    df3 = pd.concat([df1, df1, df2])
-    df4 = df3.drop_duplicates(subset=['gpdm', 'gpmc'], keep=False)
-#    df = df.sort_values(by=['gpdm', 'date'])  # 按股票、日期排序
-#    df = df.loc[(df['gpmc'] != df['gpmc'].shift(1))]  # 保留前后不一致的，即改名的
-    data = df4.values.tolist()
-    dbcn.executemany('INSERT OR IGNORE INTO GPGM (RQ,GPDM,GPMC) VALUES (?,?,?)', data)
-    dbcn.commit()
+    if len(files) > 0:
+        # 提取股票名称
+        df2 = pd.concat([get_gpmc(os.path.join(r'd:\syl', fn)) for fn in files])
+        # 下面这条很关键，让从库中提取的最新名称重复导入，以便后面删除保留新加的股票名称
+        df3 = pd.concat([df1, df1, df2])
+        df4 = df3.drop_duplicates(subset=['gpdm', 'gpmc'], keep=False)
+    #    df = df.sort_values(by=['gpdm', 'date'])  # 按股票、日期排序
+    #    df = df.loc[(df['gpmc'] != df['gpmc'].shift(1))]  # 保留前后不一致的，即改名的
+        data = df4.values.tolist()
+        dbcn.executemany('INSERT OR IGNORE INTO GPGM (RQ,GPDM,GPMC) VALUES (?,?,?)', data)
+        dbcn.commit()
     dbcn.close()
 
 #    sys.exit()

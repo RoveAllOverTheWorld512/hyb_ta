@@ -134,14 +134,15 @@ class CustomerBlockWriter(object):
         elif isinstance(codelist, list):
             lst = codelist
         lst = [e.upper() for e in lst]  # 转大写
-        if (len(lst[0]) == 9) and (lst[0][-3:-1] == '.S'):
-            lst = ['0' + e[:6] if (e[-1] == 'Z') else '1' + e[:6] for e in lst]
-        elif (len(lst[0]) == 8) and (lst[0][0] == 'S'):
-            lst = ['0' + e[2:] if (e[1] == 'Z') else '1' + e[2:] for e in lst]
-        elif len(lst[0]) == 6:
-            lst = ['1' + e if (e[0] == '6') else '0' + e for e in lst]
-        lst = [line + '\n' for line in lst]
-
+        if len(lst) > 0:
+            if (len(lst[0]) == 9) and (lst[0][-3:-1] == '.S'):
+                lst = ['0' + e[:6] if (e[-1] == 'Z') else '1' + e[:6] for e in lst]
+            elif (len(lst[0]) == 8) and (lst[0][0] == 'S'):
+                lst = ['0' + e[2:] if (e[1] == 'Z') else '1' + e[2:] for e in lst]
+            elif len(lst[0]) == 6:
+                lst = ['1' + e if (e[0] == '6') else '0' + e for e in lst]
+            lst = [line + '\n' for line in lst]
+    
         return lst
 
     def save_blocknew(self, blockname, block_type, codelist, rewrite, pos):

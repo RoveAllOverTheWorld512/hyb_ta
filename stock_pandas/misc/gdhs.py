@@ -15,6 +15,7 @@ import sqlite3
 import datetime
 import sys
 import os
+from stock_pandas.tdx.tdxconstants import *
 
 
 def get_date():
@@ -73,12 +74,48 @@ def get_quarters(m=8):
     return quarters
 
 
+def get_gdhs_down():
+    '''
+    # 获取最新股东户数较前期下降5%
+    '''
+    dbfn = os.path.join(SQLITE_PATH, 'DZH.db')
+    dbcn = sqlite3.connect(dbfn)
+    curs = dbcn.cursor()
+    # rq0最新、rq1最新季度、rq2最新年度、rq3上一年度同期
+    rq1, rq2, rq3 = get_date()
+    # 提取年报以来最新股东户数，注意最新在前
+    sql = "select gpdm,rq,gdhs from gdhs where rq>='%s' order by rq desc;" % rq1
+    curs.execute(sql)
+    data = curs.fetchall()
+
+    df0 = pd.DataFrame(data, columns=['gpdm', 'rq0', 'gdhs0'])
+    # 保留最新户数：df1为最新
+    df1 = df0.drop_duplicates(['gpdm'], keep='first')
+    # df2中最新户数重复
+    df2 = pd.concat([df0, df1])
+    # 删除重复
+    df2 = df2.drop_duplicates(keep=False)
+    # 按日期降序排列
+    df2 = df2.sort_values(by=['gpdm', 'rq0'], ascending=False)
+    # 保留最新,
+    df2 = df2.drop_duplicates(['gpdm'], keep='first')
+    df1 = df1.set_index('gpdm')
+    df2 = df2.set_index('gpdm')
+    df2.columns = ['rq1', 'gdhs1']
+    df = df1.join(df2)
+    df = df.assign(gdhsb=df['gdhs0']/df['gdhs1'])
+    df = df.sort_values(by=['gdhsb'], ascending=True)
+    df = df.loc[(df['gdhsb'] < 0.95)]
+
+    return df
+
+
 def get_gdhs_fromdb():
     '''
     # 获取最新股东户数及季度环比变化，股东户数从大智慧网抓取
     # 每天运行d:\selestock\dzh_gdhs2sqlite.py保存在d:\hyb\DZH.db
     '''
-    dbfn = r'd:\hyb\DZH.db'
+    dbfn = os.path.join(SQLITE_PATH, 'DZH.db')
     dbcn = sqlite3.connect(dbfn)
     curs = dbcn.cursor()
     # rq0最新、rq1最新季度、rq2最新年度、rq3上一年度同期
@@ -132,7 +169,7 @@ def get_gdhs_fromdb1(m):
     # 每天运行d:\selestock\dzh_gdhs2sqlite.py保存在d:\hyb\DZH.db
     '''
     rqs = get_quarters(m)
-    dbfn = r'd:\hyb\DZH.db'
+    dbfn = os.path.join(SQLITE_PATH, 'DZH.db')
     dbcn = sqlite3.connect(dbfn)
     curs = dbcn.cursor()
     rq = rqs[0].strftime('%Y-%m-%d')
@@ -176,19 +213,44 @@ if __name__ == '__main__':
     gpdmb = tdx.get_gpdm()
     gpsssj = tdx.get_ssdate()
     gpsssj.index.name = gpsssj.index.name.lower()
+    # 最新股东户数下降
+    gdhs_down = get_gdhs_down()
+    gdhs_down = pd.merge(gdhs_down, gpdmb, on='gpdm', how='left')
+    gdhs_down = pd.merge(gdhs_down, gpsssj, on='gpdm', how='left')
+    gdhs_down = dfsortcolumns(gdhs_down, subset='gpdm,gpmc,ssdate')
+    gdhs_down = gdhs_down.drop(columns=['sc', 'dm', 'gppy', 'gplb'])
+    # 股东户数变化，按季度检索
     gdhs = get_gdhs_fromdb1(12)
     gdhs = pd.merge(gdhs, gpdmb, on='gpdm', how='left')
     gdhs = pd.merge(gdhs, gpsssj, on='gpdm', how='left')
     gdhs = dfsortcolumns(gdhs, subset='gpdm,gpmc,ssdate')
     gdhs = gdhs.drop(columns=['sc', 'dm', 'gppy', 'gplb'])
-    gdhs = gdhs.assign(gdhsb=gdhs['gdhs0']/gdhs['gdhs12'])
-    gdhs = gdhs.sort_values(by='gdhsb')
-    fn = r'f:\data\gdhs.xlsx'
+    # 按最新日期降序排列，
+    gdhs = gdhs.sort_values(by='rq0', ascending=False)
+    rq0 = gdhs.iloc[-1].rq0    
+    # 股东户数比
+    gdhs = gdhs.assign(gdhsb0_1=gdhs['gdhs0']/gdhs['gdhs1'])
+    gdhs = gdhs.sort_values(by='gdhsb0_1')
+    gdhs = gdhs.assign(gdhsb0_2=gdhs['gdhs0']/gdhs['gdhs2'])
+    gdhs = gdhs.assign(gdhsb0_4=gdhs['gdhs0']/gdhs['gdhs4'])
+
+    gdhs1 = gdhs.loc[gdhs['rq0'] == rq0]
+    gdhs2 = gdhs.loc[gdhs['rq0'] != rq0]
+    gdhs = pd.concat([gdhs2, gdhs1])
+
+
+    fn = os.path.join(DATA_PATH, 'gdhs.xlsx')
     writer=pd.ExcelWriter(fn, engine='xlsxwriter')
     df1 = gdhs.loc[(gdhs['gdhs0'] <= gdhs['gdhs1'])]
+    df1 = df1.sort_values(by='gdhsb0_1')
+
     df2 = df1.loc[(df1['gdhs1'] <= df1['gdhs2'])]
+    df2 = df2.sort_values(by='gdhsb0_2')
+
     df3 = df2.loc[(df2['gdhs2'] <= df2['gdhs3'])]
     df4 = df3.loc[(df3['gdhs3'] <= df3['gdhs4'])]
+    df4 = df4.sort_values(by='gdhsb0_4')
+
     df5 = df4.loc[(df4['gdhs4'] <= df4['gdhs5'])]
     df6 = df5.loc[(df5['gdhs5'] <= df5['gdhs6'])]
     df7 = df6.loc[(df6['gdhs6'] <= df6['gdhs7'])]
@@ -197,6 +259,7 @@ if __name__ == '__main__':
     df10 = df9.loc[(df9['gdhs9'] <= df9['gdhs10'])]
     df11 = df10.loc[(df10['gdhs10'] <= df10['gdhs11'])]
     df12 = df11.loc[(df11['gdhs11'] <= df11['gdhs12'])]
+    gdhs_down.to_excel(writer, sheet_name='最新股东户数下降', index=False)
     gdhs.to_excel(writer, sheet_name='全部', index=False)
     df1.to_excel(writer, sheet_name='选股1', index=False)   
     df2.to_excel(writer, sheet_name='选股2', index=False)   
@@ -214,15 +277,21 @@ if __name__ == '__main__':
 
     bkn = CustomerBlockWriter()
     rewrite = True
+    blockname = '股东减0'
+    block_type = 'GDJ0'
+    pos = 8
+    codelist = gdhs_down['gpdm']
+    bkn.save_blocknew(blockname, block_type, codelist, rewrite, pos)
+
     blockname = '股东减1'
     block_type = 'GDJ1'
-    pos = 3
+    pos = 9
     codelist = df4['gpdm']
     bkn.save_blocknew(blockname, block_type, codelist, rewrite, pos)
 
     blockname = '股东减2'
     block_type = 'GDJ2'
-    pos = 4
+    pos = 10
     codelist = df6['gpdm']
     bkn.save_blocknew(blockname, block_type, codelist, rewrite, pos)
 

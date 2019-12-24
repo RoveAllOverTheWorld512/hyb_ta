@@ -32,10 +32,10 @@ def doublebottom(open, high, low, close, m1=None, m=None, n1=None, n=None, **kwa
     '''
     def idxmax(ds, i, j):
         '''
-        返回pandas.Series指定位置i、指定区间内j的最大值及索引
+        返回pandas.Series指定位置、指定区间内的最大值及索引
         返回的是pandas.Series，只有一行，当有多个相同最大值时
         返回的是前面的那个
-        注意：ds索引号为顺序号，j>0
+        注意：ds索引号为顺序号，l>0
         '''
         if isnan(i):
             return None
@@ -46,10 +46,10 @@ def doublebottom(open, high, low, close, m1=None, m=None, n1=None, n=None, **kwa
 
     def idxmin(ds, i, j):
         '''
-        返回pandas.Series指定位置i、指定区间内j的最小值及索引
+        返回pandas.Series指定位置、指定区间内的最小值及索引
         返回的是pandas.Series，只有一行，当有多个相同最小值时
         返回的是前面的那个
-        注意：ds索引号为顺序号，j>0
+        注意：ds索引号为顺序号，l>0
         '''
         if isnan(i):
             return None
@@ -80,7 +80,6 @@ def doublebottom(open, high, low, close, m1=None, m=None, n1=None, n=None, **kwa
     indexname = ds.index.name  # 索引名
     name = ds.name  # 列名
     df1 = ds.reset_index()  # 变成了pd.DataFrame,索引为pd.RangeIndex，原索引变成列date
-#    ds2 = df1[name].map(lambda x: x.strftime('%Y-%m-%d'))  # 索引为pd.RangeIndex
     ds2 = df1[name]  # 索引为pd.RangeIndex
     # n天内高点
     try:
@@ -93,7 +92,7 @@ def doublebottom(open, high, low, close, m1=None, m=None, n1=None, n=None, **kwa
         df3.index += (n - 1)  # 由于前面n-1行没有返回数据，将所以往后移n-1
         df1['max'] = df3[name]  # 前n周期最大值
         df1['idxmax'] = df3['index']  # 最大值对应的索引序号
-        df1['idxmaxdate'] = df3['idxmaxdate'].map(lambda x: x.strftime('%Y-%m-%d'))
+        df1['idxmaxdate'] = df3['idxmaxdate']
     except:
         df1['max'] = npNaN  # 前n周期最大值
         df1['idxmax'] = npNaN  # 最大值对应的索引序号
@@ -109,7 +108,7 @@ def doublebottom(open, high, low, close, m1=None, m=None, n1=None, n=None, **kwa
         df6.index += (n1 - 1)  # 由于前面n-1行没有返回数据，将所以往后移n-1
         df1['max1'] = df6[name]  # 前n周期最大值
         df1['idxmax1'] = df6['index']  # 最大值对应的索引序号
-        df1['idxmaxdate1'] = df6['idxmaxdate1'].map(lambda x: x.strftime('%Y-%m-%d'))
+        df1['idxmaxdate1'] = df6['idxmaxdate1']
     except:
         df1['max1'] = npNaN  # 前n周期最大值
         df1['idxmax1'] = npNaN  # 最大值对应的索引序号
@@ -140,7 +139,7 @@ def doublebottom(open, high, low, close, m1=None, m=None, n1=None, n=None, **kwa
         df4.index += (len(ds2)-len(ds4))  # 由于前面有较多行未返回数据
         df1['min'] = df4[name]
         df1['idxmin'] = df4['index']
-        df1['idxmindate'] = df4['idxmindate'].map(lambda x: x.strftime('%Y-%m-%d'))
+        df1['idxmindate'] = df4['idxmindate']
 
     ds5 = None
     idx1 = None  # 记录上一个序号
@@ -167,7 +166,7 @@ def doublebottom(open, high, low, close, m1=None, m=None, n1=None, n=None, **kwa
         df5.index += (len(ds2)-len(ds5))  # 由于前面有较多行未返回数据
         df1['min1'] = df5[name]
         df1['idxmin1'] = df5['index']
-        df1['idxmindate1'] = df5['idxmindate1'].map(lambda x: x.strftime('%Y-%m-%d'))
+        df1['idxmindate1'] = df5['idxmindate1']
         
     # 两个低点间的高点max2
     ds7 = None
@@ -201,8 +200,8 @@ def doublebottom(open, high, low, close, m1=None, m=None, n1=None, n=None, **kwa
         df7.index += (len(ds2)-len(ds7))  # 由于前面有较多行未返回数据
         df1['max2'] = df7[name]
         df1['idxmax2'] = df7['index']
-        df1['idxmaxdate2'] = df7['idxmaxdate2'].map(lambda x: x.strftime('%Y-%m-%d'))
-
+        df1['idxmaxdate2'] = df7['idxmaxdate2']
+    
     df1 = df1.assign(n_days=df1.index-df1['idxmax'])  # 当前位置距离高点天数
     df1 = df1.assign(n1_days=df1.index-df1['idxmax1'])  # 当前位置距离远高点天数
     df1 = df1.assign(m_days=df1.index-df1['idxmin'])  # 当前位置距离低点天数

@@ -13,6 +13,7 @@ QQ: 592440193
 from stock_pandas.tdx.tdxdayread import Tdxday
 from stock_pandas.tdx.tdxcfg import Tdx
 from stock_pandas.tdx.class_func import *
+from stock_pandas.tdx.tdxconstants import *
 from stock_pandas.misc.gpgm import get_gpmc_fromdb
 import pandas_ta as ta
 import pandas as pd
@@ -53,7 +54,7 @@ def selefirstsignal(df):
     return df.set_index('date')
 
 
-def signal(gpdm, start, m1, m, n, in_threshold, de_threshold):
+def signal(gpdm, gpmc, start, m1, m, n, in_threshold, de_threshold):
     tdxday = Tdxday(gpdm)
     ohlc = tdxday.get_qfqdata(start=start)
     if ohlc.empty:
@@ -62,10 +63,12 @@ def signal(gpdm, start, m1, m, n, in_threshold, de_threshold):
                          in_threshold=in_threshold, de_threshold=de_threshold)
     sc = get_gpfl(gpdm)[0].upper()
     gpdm = f'{gpdm}.{sc}'
-    gpmc = get_gpmc_fromdb(gpdm)
-    ohlc = pd.merge(ohlc, gpmc, on='date', how='outer')
+    gpmc1 = get_gpmc_fromdb(gpdm)
+    ohlc = pd.merge(ohlc, gpmc1, on='date', how='outer')
     ohlc = ohlc.sort_index()
     ohlc['gpmc'].fillna(method='ffill', inplace=True)
+    # 下句对于新股，数据库中还没有日期对应名称的情况进行处理
+    ohlc.loc[ohlc['gpmc'].isnull(), 'gpmc'] = gpmc
     ohlc = ohlc.assign(date=ohlc.index)
     start1 = '20180101'
     ohlc = ohlc.loc[(ohlc['date'] >= start1)]
@@ -76,6 +79,7 @@ def signal(gpdm, start, m1, m, n, in_threshold, de_threshold):
 #        return None
     ohlc = ohlc.assign(gpdm=tdxday.gpdm)
     ohlc = ohlc.assign(ssdate=tdxday.ssdate)
+
     df = dfsortcolumns(ohlc, subset='gpdm,gpmc,ssdate,date,close')
     # 注意：df.iloc[-1]返回的是pandas.core.series.Series
     # 下句-1后面有冒号，返回的是pandas.core.frame.DataFrame。“:”不能少，
@@ -95,7 +99,9 @@ if __name__ == '__main__':
     gpdmb = pd.merge(gpdmb, gpsssj, on='gpdm', how='left')
 #    sys.exit()
     start = '20180501'    # 股票交易数据起始时间
-    end = datetime.datetime.now().strftime('%Y%m%d')
+    end = lastopenday().replace('-', '')
+#    end = datetime.datetime.now().strftime('%Y%m%d')
+#    end = lastopenday().replace('-', '')
 #    m1 = 144   # 上涨时间窗口长度
 #    m = 55   # 上涨时间窗口长度
 #    n1 = 89   # 回调时间窗口长度
@@ -107,10 +113,10 @@ if __name__ == '__main__':
     m1 = 144   # 上涨时间窗口长度
     m = 55   # 上涨时间窗口长度
     n1 = 55   # 回调时间窗口长度
-    n = 13   # 回调时间窗口长度
+    n = 21   # 回调时间窗口长度
     # 上面4个参数设定需遵循n+m<=n1,m1远大于m，确保区域叠加
     in_threshold = 0.50  # 上涨幅度阈值
-    de_threshold = -0.30  # 回调幅度阈值
+    de_threshold = -0.25  # 回调幅度阈值
 
 #    sys.exit()
 #    600082.SH
@@ -132,7 +138,8 @@ if __name__ == '__main__':
 #    600081.SH
 #    300001.SZ
 #    600112.SH
-#    600116.SH'''.replace(' ',"").split('\n')
+#    dmb = '''
+#    688258.SH'''.replace(' ',"").split('\n')
 #    dmb = [dm[:6] if dm != '' else None for dm in dmb]
 #    gpdmb = gpdmb.loc[gpdmb['dm'].isin(dmb)]
 #    sys.exit()
@@ -141,6 +148,9 @@ if __name__ == '__main__':
                'SZZBA': '深市主板A股',
                'SZZXBA': '深市中小板A股',
                'SZCYBA': '深市创业板A股'}
+#    gplblst = {'SZZBA': '深市主板A股',
+#               'SZZXBA': '深市中小板A股',
+#               'SZCYBA': '深市创业板A股'}
     for lb in gplblst:
         start_time = time.time()
         sgdf = None
@@ -150,7 +160,7 @@ if __name__ == '__main__':
         for i in range(k, ln):
             row = gpdmb1.iloc[i]
             print(i + 1, ln, row.dm, row.gpmc)
-            sg = signal(row.dm, start, m1, m, n, in_threshold, de_threshold)
+            sg = signal(row.dm, row.gpmc, start, m1, m, n, in_threshold, de_threshold)
             if isinstance(sg, pd.DataFrame) and not sg.empty:
                 sgdf = pd.concat([sgdf, sg])
 
@@ -168,7 +178,8 @@ if __name__ == '__main__':
             i += 1
 
         if isinstance(sgdf, pd.DataFrame):
-            csvfn = f'f:\data\{lb}_{start}_{end}_{m1}_{m}_{n}_{in_threshold}_{de_threshold}.csv'
+            
+            csvfn = f'{DATA_PATH}\{lb}_{start}_{end}_{m1}_{m}_{n}_{in_threshold}_{de_threshold}.csv'
             sgdf.to_csv(csvfn, index=False, encoding='GBK')
 #    sys.exit()
 #    sgdf1 = sgdf.loc[(sgdf.index > '2018-09-01')]

@@ -20,6 +20,7 @@ import numpy as np
 import dateutil.parser
 import struct
 import winreg
+import pickle
 import datetime
 from io import StringIO
 from urllib import request
@@ -245,6 +246,7 @@ def openday_df():
 
     return df
 
+
 def readtxt(fn):
     '''
     读取txt文件
@@ -289,6 +291,50 @@ def dfsortcolumns(df, subset=None):
             cols.append(i)
     cols = cols + [i for i in columns if i not in cols]
     return df[cols]
+
+
+def dump_pickle(path, fn, data):
+    '''
+    持久化数据保存
+    '''
+    pickle_fn = os.path.join(path, fn)
+    with open(pickle_fn, 'wb') as f:
+        pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
+        f.close()
+    return True
+
+
+def load_pickle(path, fn):
+    '''
+    持久化数据提取
+    '''
+    pickle_fn = os.path.join(path, fn)
+    with open(pickle_fn, 'rb') as f:
+        data = pickle.load(f)
+        f.close()
+    return data
+
+
+def list_sub(a, b):
+    '''
+    list差集，不改变顺序
+    '''
+    return [i for i in a if i not in b]
+
+
+def list_add(a, b):
+    '''
+    list并集，去重且不改变顺序
+    '''
+    return list_drop(a + b)
+
+
+def list_drop(a):
+    '''
+    list去重，不改变顺序
+    '''
+    return sorted(set(a), key=a.index)
+
 
 if __name__ == '__main__':
     fn = r'd:\tdx\shlday\sh601360.day'
