@@ -108,7 +108,7 @@ if __name__ == '__main__':
 #                time.sleep(2)
 #                print(f'i={i}')
                 if stocks is not None:
-#                    print(f'OK')
+                    #                    print(f'OK')
                     datas = datas + stocks
                 else:
                     bad_stocks = bad_stocks + all_stocks
@@ -116,10 +116,10 @@ if __name__ == '__main__':
             i += 1
         bad_stocks1 = []
         for all_stocks in bad_stocks:
-#            print(all_stocks)
+            #            print(all_stocks)
             stocks = api.get_security_quotes(all_stocks)
             if stocks is not None:
-#                print(f'OK')
+                #                print(f'OK')
                 datas = datas + stocks
             else:
                 bad_stocks1.append(all_stocks)
@@ -130,21 +130,44 @@ if __name__ == '__main__':
 
     #        pprint.pprint(stocks)
     if len(datas) != 0:
+
         stocksdf = pd.DataFrame(datas)
         stocksdf = stocksdf[cols]
         stocksdf['gpdm'] = ''
-        stocksdf.loc[stocksdf['market'] == 1, 'gpdm'] = stocksdf['code'] + '.SH'
-        stocksdf.loc[stocksdf['market'] == 0, 'gpdm'] = stocksdf['code'] + '.SZ'
-        stocksdf = stocksdf.set_index('gpdm')
+        stocksdf.loc[stocksdf['market'] == 1,
+                     'gpdm'] = stocksdf['code'] + '.SH'
+        stocksdf.loc[stocksdf['market'] == 0,
+                     'gpdm'] = stocksdf['code'] + '.SZ'
+        stocksdf = stocksdf.set_index('gpdm', drop=False)
         stocksdf['gpmc'] = gpdmb['gpmc']
-        stocksdf=stocksdf.assign(pct_chg=(stocksdf['price']/stocksdf['last_close']-1)*100)
-        df = stocksdf[['gpmc', 'price', 'last_close', 'pct_chg', 'active1', 'servertime']]
+        stocksdf = stocksdf.assign(
+            pct_chg=(
+                stocksdf['price'] /
+                stocksdf['last_close'] -
+                1) *
+            100)
+        cols = [
+            'gpdm',
+            'gpmc',
+            'open',
+            'high',
+            'low',
+            'price',
+            'vol',
+            'amount',
+            'last_close',
+            'pct_chg',
+            'active1',
+            'servertime']
+        df = stocksdf[cols]
     now1 = datetime.datetime.now()
     print(now1 - now0)
 
+#    sys.exit()
+
     df1 = df1.join(df, lsuffix='_1')
-    df1 = df1.assign(desc_21=df1['price']/df1['max_21']-1)
-    df1 = df1.assign(desc_55=df1['price']/df1['max_55']-1)
+    df1 = df1.assign(desc_21=df1['price'] / df1['max_21'] - 1)
+    df1 = df1.assign(desc_55=df1['price'] / df1['max_55'] - 1)
     df1.loc[df1['price'] == 0, 'desc_21'] = None
     df1.loc[df1['price'] == 0, 'desc_55'] = None
     df1.loc[df1['desc_21'] > 0, 'desc_21'] = None

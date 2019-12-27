@@ -30,6 +30,7 @@ class CustomError(Exception):
     '''
     自定义错误异常
     '''
+
     def __init__(self, ErrorInfo):
         super().__init__(self)  # 初始化父类
         self.errorinfo = ErrorInfo
@@ -62,7 +63,7 @@ def get_filemd5(filename):
     if os.path.exists(filename):
         with open(filename, 'rb') as f:
             while True:
-                data = f.read(1024*1024)  # 每次读入1M
+                data = f.read(1024 * 1024)  # 每次读入1M
                 if not data:
                     break
                 md5obj.update(data)
@@ -102,19 +103,19 @@ def get_data(filename):
         data = f.read()
         f.close()
 
-    days = int(len(data)/32)  # 数据文件交易日天数
+    days = int(len(data) / 32)  # 数据文件交易日天数
 
     records = []
     for i in range(days):
         dat = data[i * 32: (i + 1) * 32]
         rq, kp, zg, zd, sp, cje, cjl, tmp = struct.unpack(_format, dat)
         rq = dateutil.parser.parse(str(rq)).strftime("%Y-%m-%d")
-        kp = kp/100.00
-        zg = zg/100.00
-        zd = zd/100.00
-        sp = sp/100.00
-        cje = cje/100000000.00     # 亿元
-        cjl = cjl/10000.00         # 万股
+        kp = kp / 100.00
+        zg = zg / 100.00
+        zd = zd / 100.00
+        sp = sp / 100.00
+        cje = cje / 100000000.00     # 亿元
+        cjl = cjl / 10000.00         # 万股
         records.append([rq, kp, zg, zd, sp, cje, cjl])
 
     df = pd.DataFrame(records, columns=_columns)
@@ -162,7 +163,7 @@ def get_adjfactor(filename):
     # 前复权
     df = df.sort_index(ascending=False)
     a = df.iloc[0][0]
-    df = df/a
+    df = df / a
     df.index.name = 'date'
     df.remarks = '数据提取成功'
 
@@ -252,18 +253,18 @@ def readtxt(fn):
     读取txt文件
     '''
     txt = None
-    if os.path.exists(fn) :
-        #用二进制方式打开再转成字符串，可以避免直接打开转换出错
-        with open(fn,'rb') as f:
+    if os.path.exists(fn):
+        # 用二进制方式打开再转成字符串，可以避免直接打开转换出错
+        with open(fn, 'rb') as f:
             txt = f.read()
-            if txt[:3] == b'\xef\xbb\xbf' :
-                txt = txt[3:].decode('UTF8','ignore')   #UTF-8
-            elif txt[:2] == b'\xfe\xff' :
-                txt = txt[2:].decode('UTF-16','ignore')  #Unicode big endian
-            elif txt[:2] == b'\xff\xfe' :
-                txt = txt[2:].decode('UTF-16','ignore')  #Unicode
-            else :
-                txt = txt.decode('GBK','ignore')      #ansi编码
+            if txt[:3] == b'\xef\xbb\xbf':
+                txt = txt[3:].decode('UTF8', 'ignore')  # UTF-8
+            elif txt[:2] == b'\xfe\xff':
+                txt = txt[2:].decode('UTF-16', 'ignore')  # Unicode big endian
+            elif txt[:2] == b'\xff\xfe':
+                txt = txt[2:].decode('UTF-16', 'ignore')  # Unicode
+            else:
+                txt = txt.decode('GBK', 'ignore')  # ansi编码
     else:
         print(f"文件{fn}不存在！")
 

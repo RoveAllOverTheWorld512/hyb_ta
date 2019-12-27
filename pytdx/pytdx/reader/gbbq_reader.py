@@ -91,5 +91,5 @@ class GbbqReader(object):
 
 
 if __name__ == '__main__':
-    result = GbbqReader().get_df("/Users/rainx/tmp/gbbq")
+    result = GbbqReader().get_df(r"C:\new_hxzq_hc\T0002\hq_cache\gbbq")
     print(result)

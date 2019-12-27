@@ -29,30 +29,30 @@ def prgrun(msg, prg):
 
 
 if __name__ == '__main__':
-    msg = '提取股东户数，大概需要20分钟'
-    prg = r'D:\selestock\dzh-gdhs2sqlite.py'
+#    msg = '提取股东户数，大概需要20分钟'
+#    prg = r'D:\selestock\dzh-gdhs2sqlite.py'
+#    prgrun(msg, prg)
+#
+#    msg = '分析股东户数变化，大概需要1分钟'
+#    prg = r'D:\pandas-ta_project\stock_pandas\misc\gdhs.py'
+#    prgrun(msg, prg)
+#
+#    msg = '双底研究，大概需要70分钟'
+#    prg = r'D:\pandas-ta_project\double_bottom_study.py'
+#    prgrun(msg, prg)
+#
+#    msg = '双底研究，生成通达信自定义板块，大概需要1分钟'
+#    prg = r'D:\pandas-ta_project\today_sele.py'
+#    prgrun(msg, prg)
+
+    msg = '下载市盈率，大概需要1分钟'
+    prg = r'd:\selestock\dlsyl.py'
     prgrun(msg, prg)
 
-    msg = '分析股东户数变化，大概需要1分钟'
-    prg = r'F:\pandas-ta_project\stock_pandas\misc\gdhs.py'
+    msg = '市盈率入库，大概需要1分钟'
+    prg = r'd:\hyb\syl2sqlite.py'
     prgrun(msg, prg)
 
-#    msg = '双底研究，大概需要140分钟'
-#    prg = r'F:\pandas-ta_project\double_bottom_study.py'
-#    prgrun(msg, prg)
-#
-#    msg = '双底研究，生成通达信自定义板块，大概需要3分钟'
-#    prg = r'F:\pandas-ta_project\today_sele.py'
-#    prgrun(msg, prg)
-#
-#    msg = '下载市盈率，大概需要5分钟'
-#    prg = r'd:\selestock\dlsyl.py'
-#    prgrun(msg, prg)
-#
-#    msg = '市盈率入库，大概需要3分钟'
-#    prg = r'd:\hyb\syl2sqlite.py'
-#    prgrun(msg, prg)
-#
-#    msg = '股票改名信息入库，大概需要1分钟'
-#    prg = r'd:\pandas-ta_project\stock_pandas\misc\gpgm.py'
-#    prgrun(msg, prg)
+    msg = '股票改名信息入库，大概需要1分钟'
+    prg = r'd:\pandas-ta_project\stock_pandas\misc\gpgm.py'
+    prgrun(msg, prg)

@@ -173,7 +173,7 @@ def peaks_troughs(peaks, troughs, pv, tv):
         if (p1[1] > p0[1]) and (p2[1] < p1[1]):
             # 3点^形
             zf1 = abs(p1[1] / p0[1] - 1)     # 上涨幅度
-            zf2 = abs(p2[1] / p1[1] - 1)     # 回调幅度            
+            zf2 = abs(p2[1] / p1[1] - 1)     # 回调幅度
             # 上涨、回调幅度都小于设定阈值，则删除该点，指针回调2
             # 回调幅度大于等于于设定阈值，指针前进1
             if (zf1 < tv) & (zf2 < pv):
@@ -284,11 +284,11 @@ if __name__ == "__main__":
 
     gpdm = '002451'
     tdxday = Tdxday(gpdm)
-    start = '20180101'
+    start = '20190101'
     end = '20191231'
     df = tdxday.get_qfqdata(start=start, end=end)
     ds = round(df['close'], 4)
-    sys.exit()
+#    sys.exit()
     # 波峰：大于前一，同时大于后一或等于后一且大于后二
     p = (ds.diff(1) > 0) & ((ds.diff(-1) > 0) | ((ds.diff(-1) == 0) & (ds.diff(-2) > 0)))
     peaks = ds.loc[p]
@@ -326,7 +326,7 @@ if __name__ == "__main__":
 
     plt.savefig('tmp1.png')
     plt.show()
-    
+
     pv = 0.2
     tv = -0.15
     i = 0
@@ -348,13 +348,13 @@ if __name__ == "__main__":
     df = pd.DataFrame(datas)
     df = df.replace(0, np.NaN)
     df.to_csv('pt3.csv')
-    
+
     sys.exit()
-    
+
 
     while True:
         if tlst[0][0] < plst[0][0]:  # 波谷在前
-                    
+
             for j in range(len(tlst)):
                 pp = None
                 for k in range(len(plst)):
@@ -371,6 +371,6 @@ if __name__ == "__main__":
                     pass
                 else:  # 找到第一个超出阈值的波峰，将波峰、波谷从该位置切成两段
                     p1 = plst[:]
-                    
+
         else:
             当前位置为波峰
